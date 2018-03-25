@@ -3,6 +3,7 @@ package:
     version: "1.0.0"
 source:
   git_url: https://github.com/shahab-sarmashghi/Skmer.git
+  git_rev: v1.0.0
 build:
   number: 0
   script: python setup.py install --single-version-externally-managed --record=record.txt
@@ -20,8 +21,11 @@ requirements:
     - numpy
     - scipy
     - pandas
-    - jellyfish==2.2.6
-    - mash==1.1
+    - jellyfish ==2.2.6
+    - mash ==1.1
+test:
+  commands:
+    - skmer --help
 about:
     home: https://github.com/shahab-sarmashghi/Skmer
     license: BSD 3-Clause

@@ -1,6 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+# __version__ = 'skmer 1.0.0'
+
+
 import numpy as np
 from scipy.optimize import newton
 import argparse
@@ -294,11 +298,12 @@ def main():
     # Input arguments parser
     parser = argparse.ArgumentParser(description='Estimate gonomic distances between genome-skims',
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
+    # parser.add_argument('-v', '--version', action='store_true', help='print the current version')
     subparsers = parser.add_subparsers(title='commands',
                                        description='reference   Process a library of reference genome-skims\n'
                                                    'query       Compare an input genome-skim against a reference ' +
                                                    'library',
-                                       help='Run skmer.py {reference,query} [-h] for additional help')
+                                       help='Run skmer {reference,query} [-h] for additional help')
 
     # Reference command subparser
     parser_ref = subparsers.add_parser('reference', description='Process a library of reference genome-skims')
@@ -335,12 +340,12 @@ def main():
     parser_qry.set_defaults(func=query)
 
     args = parser.parse_args()
+
+    # if args.version:
+    #     print(__version__)
+
     args.func(args)
 
-    # if not os.path.isdir(args.outputDir) or not os.access(args.outputDir, os.W_OK):
-    #     sys.exit("Unable to write to output directory %s" % (args.outputDir,))
-    # if args.p < 1:
-    #     sys.exit('Number of processors to use must be greater than 0')
 
 if __name__ == "__main__":
     main()
