@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-# __version__ = 'skmer 1.0.0'
+# __version__ = 'skmer 1.1.0'
 
 
 import numpy as np
@@ -30,7 +30,7 @@ def cov_func(x, r, p, k, l):
     return lam * (p ** 2) * np.exp(-lam * p) - 2 * r * (p * np.exp(-lam * p) + 1 - p)
 
 
-def estimate_cov(fastq, lib, k, e):
+def estimate_cov(fastq, lib, k, e, nth):
     sample = os.path.basename(fastq).split('.fastq')[0]
     sample_dir = os.path.join(lib, sample)
     try:
@@ -40,8 +40,9 @@ def estimate_cov(fastq, lib, k, e):
             raise
     mercnt = os.path.join(sample_dir, sample + '.jf')
     histo_file = os.path.join(sample_dir, sample + '.hist')
-    call(["jellyfish", "count", "-m", str(k), "-s", "100M", "-C", "-o", mercnt, fastq], stderr=open('log', 'a'))
-    histo_stderr = check_output(["jellyfish", "histo", "-h", "1000000", mercnt], stderr=STDOUT)
+    call(["jellyfish", "count", "-m", str(k), "-s", "100M", "-t", str(nth), "-C", "-o", mercnt, fastq],
+         stderr=open(os.devnull, 'w'))
+    histo_stderr = check_output(["jellyfish", "histo", "-h", "1000000", mercnt], stderr=STDOUT, universal_newlines=True)
     with open(histo_file, mode='w') as f:
         f.write(histo_stderr)
     os.remove(mercnt)
@@ -69,12 +70,12 @@ def estimate_cov(fastq, lib, k, e):
         lam = (np.exp(-gam) * (gam ** ind) / np.math.factorial(ind)) * count[1] / count[ind] + gam * (1 - np.exp(-gam))
         eps = 1 - (gam / lam) ** (1.0 / k)
         cov = (1.0 * l / (l - k)) * lam
-    tot_seq = ksum * l / (l-k)
-    g_len = tot_seq / cov
+    tot_seq = 1.0 * ksum * l / (l - k)
+    g_len = int(tot_seq / cov)
     info_file = os.path.join(sample_dir, sample + '.dat')
     with open(info_file, mode='w') as f:
-        f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) + 'error_rate\t{0}\n'.format(eps)
-                + 'read_length\t{0}\n'.format(l))
+        f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
+                'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l))
     return sample, cov, g_len, eps, l
 
 
@@ -86,10 +87,10 @@ def sketch(fastq, lib, ce, ee, k, s, cov_thres):
     eps = ee[sample]
     copy_thres = int(cov / cov_thres) + 1
     if cov < cov_thres or eps == 0.0:
-        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, fastq], stderr=open('log', 'a'))
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, fastq], stderr=open(os.devnull, 'w'))
     else:
         call(["mash", "sketch", "-m", str(copy_thres), "-k", str(k), "-s", str(s), "-o", msh, fastq],
-             stderr=open('log', 'a'))
+             stderr=open(os.devnull, 'w'))
     return
 
 
@@ -117,7 +118,7 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres
     sample_dir_2 = os.path.join(lib_2, sample_2)
     msh_1 = os.path.join(sample_dir_1, sample_1 + ".msh")
     msh_2 = os.path.join(sample_dir_2, sample_2 + ".msh")
-    dist_stderr = check_output(["mash", "dist", msh_1, msh_2], stderr=STDOUT)
+    dist_stderr = check_output(["mash", "dist", msh_1, msh_2], stderr=STDOUT, universal_newlines=True)
     j = float(dist_stderr.split()[4].split("/")[0]) / float(dist_stderr.split()[4].split("/")[1])
     gl_1 = le[sample_1]
     gl_2 = le[sample_2]
@@ -133,7 +134,7 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres
     r_2 = temp_func(cov_2, p_2, k, l_2, cov_thres)
     wp = r_1[0] * r_2[0] * (gl_1 + gl_2) / 2
     zp = sum(r_1) * gl_1 + sum(r_2) * gl_2
-    d = 1 - (zp * j / (wp * (1 + j))) ** (1.0 / k)
+    d = max(0, 1 - (zp * j / (wp * (1 + j))) ** (1.0 / k))
     if tran:
         if 0.0 < d < 0.75:
             d = -0.75 * np.log(1 - 4.0 * d / 3.0)
@@ -176,10 +177,17 @@ def reference(args):
     # Hard-coded param
     coverage_threshold = 5
 
+    # Number of pools and threads for multi-processing
+    n_pool = min(args.p, len(genome_skims))
+    n_thread_cov = int(args.p / n_pool)
+    n_proc_cov = n_pool * n_thread_cov
+    n_pool_dist = min(args.p, len(genome_skims) ** 2)
+
     # Computing coverage, genome length, error rate, and read length
-    sys.stderr.write('[skmer] Estimating coverage using {0} processors...\n'.format(args.p))
-    pool_cov = mp.Pool(args.p)
-    results_cov = [pool_cov.apply_async(estimate_cov, args=(gm, args.l, args.k, args.e)) for gm in genome_skims]
+    sys.stderr.write('[skmer] Estimating coverages using {0} processors...\n'.format(n_proc_cov))
+    pool_cov = mp.Pool(n_pool)
+    results_cov = [pool_cov.apply_async(estimate_cov, args=(gm, args.l, args.k, args.e, n_thread_cov))
+                   for gm in genome_skims]
     for result in results_cov:
         (name, coverage, genome_length, error_rate, read_length) = result.get()
         cov_est[name] = coverage
@@ -190,8 +198,8 @@ def reference(args):
     pool_cov.join()
 
     # Sketching genome-skims
-    sys.stderr.write('[skmer] Sketching genome-skims using {0} processors...\n'.format(args.p))
-    pool_sketch = mp.Pool(args.p)
+    sys.stderr.write('[skmer] Sketching genome-skims using {0} processors...\n'.format(n_pool))
+    pool_sketch = mp.Pool(n_pool)
     results_sketch = [pool_sketch.apply_async(sketch, args=(gm, args.l, cov_est, err_est, args.k, args.s,
                                                             coverage_threshold)) for gm in genome_skims]
     for result in results_sketch:
@@ -200,21 +208,20 @@ def reference(args):
     pool_sketch.join()
 
     # Estimating pair-wise distances
-    sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(args.p))
-    pool_dist = mp.Pool(args.p)
+    sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(n_pool_dist))
+    pool_dist = mp.Pool(n_pool_dist)
     results_dist = [pool_dist.apply_async(estimate_dist, args=(s1, s2, args.l, args.l, cov_est, len_est, err_est,
                                                                read_len, args.k, coverage_threshold, args.t))
                     for s1 in samples_names for s2 in samples_names]
 
     for result in results_dist:
         dist_output = result.get()
-        result_df[(dist_output[0], dist_output[1])] = [dist_output[2]]
+        result_df[(dist_output[0], dist_output[1])] = [repr(dist_output[2])]
 
     # Writing distances to file
     sys.stderr.write('[skmer] Writing to file...\n')
     result_dfm = pd.melt(result_df, value_name='distance')
-    result_dfmc = result_dfm.clip(lower=0)
-    result_mat = result_dfmc.pivot(index='sample', columns='sample_2', values='distance')
+    result_mat = result_dfm.pivot(index='sample', columns='sample_2', values='distance')
     result_mat.to_csv(args.o + ".txt", sep='\t', mode='w')
 
 
@@ -259,9 +266,13 @@ def query(args):
     # Hard-coded param
     coverage_threshold = 5
 
+    # Number of pools for multi-processing
+    n_pool_dist = min(args.p, len(refs))
+
     # Computing the coverage, genome length, error rate, and read length of query sample
-    sys.stderr.write('[skmer] Estimating the coverage...\n')
-    (dummy, coverage, genome_length, error_rate, read_length) = estimate_cov(args.input, os.getcwd(), kl, args.e)
+    sys.stderr.write('[skmer] Estimating the coverage using {0} processors...\n'.format(args.p))
+    (dummy, coverage, genome_length, error_rate, read_length) = estimate_cov(args.input, os.getcwd(), kl, args.e,
+                                                                             args.p)
     cov_est[sample] = coverage
     len_est[sample] = genome_length
     err_est[sample] = error_rate
@@ -272,8 +283,8 @@ def query(args):
     sketch(args.input, os.getcwd(), cov_est, err_est, kl, ss, coverage_threshold)
 
     # Estimating pair-wise distances
-    sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(args.p))
-    pool_dist = mp.Pool(args.p)
+    sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(n_pool_dist))
+    pool_dist = mp.Pool(n_pool_dist)
     results_dist = [pool_dist.apply_async(estimate_dist, args=(sample, ref, os.getcwd(), args.library, cov_est, len_est,
                                                                err_est, readlen, kl, coverage_threshold, args.t))
                     for ref in refs]
@@ -283,9 +294,9 @@ def query(args):
 
     # Writing distances to file
     sys.stderr.write('[skmer] Writing to file...\n')
-    result_sc = result_s.clip(lower=0)
-    result_sc.sort_values(inplace=True)
-    result_sc.to_csv('{0}-{1}.txt'.format(args.o, sample.lower()), sep='\t', mode='w')
+    result_s.sort_values(inplace=True)
+    result_sr = result_s.apply(repr)
+    result_sr.to_csv('{0}-{1}.txt'.format(args.o, sample.lower()), sep='\t', mode='w')
 
     # Adding query to the reference library
     if args.a:
@@ -308,8 +319,8 @@ def main():
     # Reference command subparser
     parser_ref = subparsers.add_parser('reference', description='Process a library of reference genome-skims')
     parser_ref.add_argument('input_dir', help='Directory of input genome-skims (dir of .fastq files)')
-    parser_ref.add_argument('-l', default=os.path.join(os.getcwd(), 'ref'),
-                            help='Directory of output (reference) library. Default: working_directory/ref')
+    parser_ref.add_argument('-l', default=os.path.join(os.getcwd(), 'library'),
+                            help='Directory of output (reference) library. Default: working_directory/library')
     parser_ref.add_argument('-o', default='ref-dist-mat',
                             help='Output (distances) prefix. Default: ref-dist-mat')
     parser_ref.add_argument('-k', type=int, choices=list(range(1, 32)), default=31, help='K-mer length [1-31]. ' +
@@ -319,8 +330,9 @@ def main():
                                                    'estimated.')
     parser_ref.add_argument('-t', action='store_true',
                             help='Apply Jukes-Cantor transformation to distances')
-    parser_ref.add_argument('-p', type=int, default=mp.cpu_count(),
-                            help='Number of processors to use. Default for this machine: {0}'.format(mp.cpu_count()))
+    parser_ref.add_argument('-p', type=int, choices=list(range(1, mp.cpu_count() + 1)), default=mp.cpu_count(),
+                            help='Max number of processors to use [1-{0}]. '.format(mp.cpu_count()) +
+                                 'Default for this machine: {0}'.format(mp.cpu_count()), metavar='P')
     parser_ref.set_defaults(func=reference)
 
     # query command subparser
@@ -335,8 +347,9 @@ def main():
                                                    'estimated.')
     parser_qry.add_argument('-t', action='store_true',
                             help='Apply Jukes-Cantor transformation to distances')
-    parser_qry.add_argument('-p', type=int, default=mp.cpu_count(),
-                            help='Number of processors to use. Default for this machine: {0}'.format(mp.cpu_count()))
+    parser_qry.add_argument('-p', type=int, choices=list(range(1, mp.cpu_count() + 1)), default=mp.cpu_count(),
+                            help='Max number of processors to use [1-{0}]. '.format(mp.cpu_count()) +
+                                 'Default for this machine: {0}'.format(mp.cpu_count()), metavar='P')
     parser_qry.set_defaults(func=query)
 
     args = parser.parse_args()
