@@ -1,4 +1,4 @@
-# Data used to test Skmer
+# Access to the data used for Skmer benchmarking
 
 Genome-skims of:
 
