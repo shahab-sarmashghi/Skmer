@@ -18,11 +18,18 @@ from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
 
-def compute_read_length(fastq):
-    with open(fastq) as f:
+def compute_read_length(skim):
+    with open(skim) as f:
         for line in f:
             if line.startswith('@'):
                 return len(next(f).strip())
+            elif line.startswith('>'):
+                l = len(next(f).strip())
+                next_line = next(f)
+                while not next_line.startswith('>'):
+                    l += len(next_line.strip())
+                    next_line = next(f)
+                return l
 
 
 def cov_func(x, r, p, k, l):
@@ -30,8 +37,8 @@ def cov_func(x, r, p, k, l):
     return lam * (p ** 2) * np.exp(-lam * p) - 2 * r * (p * np.exp(-lam * p) + 1 - p)
 
 
-def estimate_cov(fastq, lib, k, e, nth):
-    sample = os.path.basename(fastq).split('.fastq')[0]
+def estimate_cov(skim, lib, k, e, nth):
+    sample = os.path.basename(skim).split('.f')[0]
     sample_dir = os.path.join(lib, sample)
     try:
         os.makedirs(sample_dir)
@@ -40,7 +47,7 @@ def estimate_cov(fastq, lib, k, e, nth):
             raise
     mercnt = os.path.join(sample_dir, sample + '.jf')
     histo_file = os.path.join(sample_dir, sample + '.hist')
-    call(["jellyfish", "count", "-m", str(k), "-s", "100M", "-t", str(nth), "-C", "-o", mercnt, fastq],
+    call(["jellyfish", "count", "-m", str(k), "-s", "100M", "-t", str(nth), "-C", "-o", mercnt, skim],
          stderr=open(os.devnull, 'w'))
     histo_stderr = check_output(["jellyfish", "histo", "-h", "1000000", mercnt], stderr=STDOUT, universal_newlines=True)
     with open(histo_file, mode='w') as f:
@@ -54,7 +61,7 @@ def estimate_cov(fastq, lib, k, e, nth):
     if len(count) < 3:
         sys.exit('Coverage of {0} is too low; unable to estimate it'.format(sample))
     ind = min(count.index(max(count[2:])), len(count)-2)
-    l = compute_read_length(fastq)
+    l = compute_read_length(skim)
     if e is not None:
         eps = e
         p0 = np.exp(-k * eps)
@@ -76,20 +83,25 @@ def estimate_cov(fastq, lib, k, e, nth):
     with open(info_file, mode='w') as f:
         f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
                 'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l))
+    # with open(info_file) as f:
+    #     cov = float(f.readline().strip().split('\t')[1])
+    #     g_len = int(f.readline().strip().split('\t')[1])
+    #     eps = float(f.readline().strip().split('\t')[1])
+    #     l = int(f.readline().strip().split('\t')[1])
     return sample, cov, g_len, eps, l
 
 
-def sketch(fastq, lib, ce, ee, k, s, cov_thres):
-    sample = os.path.basename(fastq).split('.fastq')[0]
+def sketch(skim, lib, ce, ee, k, s, cov_thres):
+    sample = os.path.basename(skim).split('.f')[0]
     sample_dir = os.path.join(lib, sample)
     msh = os.path.join(sample_dir, sample)
     cov = ce[sample]
     eps = ee[sample]
     copy_thres = int(cov / cov_thres) + 1
     if cov < cov_thres or eps == 0.0:
-        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, fastq], stderr=open(os.devnull, 'w'))
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, skim], stderr=open(os.devnull, 'w'))
     else:
-        call(["mash", "sketch", "-m", str(copy_thres), "-k", str(k), "-s", str(s), "-o", msh, fastq],
+        call(["mash", "sketch", "-m", str(copy_thres), "-k", str(k), "-s", str(s), "-o", msh, skim],
              stderr=open(os.devnull, 'w'))
     return
 
@@ -159,10 +171,13 @@ def reference(args):
         f.write('kmer_length\t{0}\n'.format(args.k) + 'sketch_size\t{0}\n'.format(args.s))
 
     # Making a list of sample names
-    samples_names = [f.split('.fastq')[0] for f in os.listdir(args.input_dir) if fnmatch.fnmatch(f, '*.fastq')]
+    formats = ['.fq', '.fastq', '.fa', '.fna', '.fasta']
+    files_names = [f for f in os.listdir(args.input_dir)
+                   if True in (fnmatch.fnmatch(f, '*' + form) for form in formats)]
+    samples_names = [f.split('.f')[0] for f in files_names]
 
     # Making a list of genome-skim files
-    genome_skims = [os.path.join(args.input_dir, sample + '.fastq') for sample in samples_names]
+    genome_skims = [os.path.join(args.input_dir, f) for f in files_names]
 
     # Initializing distance dataframe
     index = pd.MultiIndex.from_product([samples_names, samples_names], names=['sample', 'sample_2'])
@@ -234,7 +249,7 @@ def query(args):
     ss = int(config.split('\n')[1].split('\t')[1])
 
     # Creating a directory for the query
-    sample = os.path.basename(args.input).split('.fastq')[0]
+    sample = os.path.basename(args.input).split('.f')[0]
     sample_dir = os.path.join(os.getcwd(), sample)
     try:
         os.makedirs(sample_dir)
@@ -318,7 +333,7 @@ def main():
 
     # Reference command subparser
     parser_ref = subparsers.add_parser('reference', description='Process a library of reference genome-skims')
-    parser_ref.add_argument('input_dir', help='Directory of input genome-skims (dir of .fastq files)')
+    parser_ref.add_argument('input_dir', help='Directory of input genome-skims')
     parser_ref.add_argument('-l', default=os.path.join(os.getcwd(), 'library'),
                             help='Directory of output (reference) library. Default: working_directory/library')
     parser_ref.add_argument('-o', default='ref-dist-mat',
@@ -337,7 +352,7 @@ def main():
 
     # query command subparser
     parser_qry = subparsers.add_parser('query', description='Compare an input genome-skim against a reference library')
-    parser_qry.add_argument('input', help='Input (query) genome-skim (a .fastq file)')
+    parser_qry.add_argument('input', help='Input (query) genome-skim')
     parser_qry.add_argument('library', help='Directory of (reference) library')
     parser_qry.add_argument('-a', action='store_true',
                             help='Add the processed input (query) to the (reference) library')
