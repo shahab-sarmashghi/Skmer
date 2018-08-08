@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-# __version__ = 'skmer popsim'
+# __version__ = 'skmer2'
 
 
 import numpy as np
