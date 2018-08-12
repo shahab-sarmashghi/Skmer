@@ -242,7 +242,6 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, re, k, tran)
     wp = r_1[0] * r_2[0] * (gl_1 + gl_2) / 2
     zp = sum(r_1) * gl_1 + sum(r_2) * gl_2
     d_0 = max(0, 1 - (zp * jac / (wp * (1 + jac))) ** (1.0 / k))
-    print sample_1, sample_2, d_0
 
     A = [0]
     B = 0
