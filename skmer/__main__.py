@@ -16,6 +16,7 @@ import errno
 import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
+from Bio import SeqIO
 
 
 def compute_read_length(skim):
@@ -52,7 +53,7 @@ def estimate_cov(skim, lib, k, e, nth):
     histo_stderr = check_output(["jellyfish", "histo", "-h", "1000000", mercnt], stderr=STDOUT, universal_newlines=True)
     with open(histo_file, mode='w') as f:
         f.write(histo_stderr)
-    os.remove(mercnt)
+    # os.remove(mercnt)
     count = [0]
     ksum = 0
     for item in histo_stderr.split('\n')[:-1]:
@@ -123,7 +124,20 @@ def temp_func(cov, p, k, l, cov_thres):
         return 1 - np.exp(-lam * p) * sum(s), 0
 
 
-def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres, tran):
+def compute_shared_kmers(read, mercnt, k):
+    l = len(read)
+    n_shared = 0
+    for i in range(l-k+1):
+        kmer = read[i:i+k]
+        qry_stderr = check_output(["jellyfish", "query", mercnt, kmer], stderr=STDOUT, universal_newlines=True)
+        n_shared += int(qry_stderr.strip().split()[1])
+    return 1.0 * n_shared / (l-k+1)
+
+
+
+def estimate_dist(skim_1, skim_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres, tran):
+    sample_1 = os.path.basename(skim_1).split('.f')[0]
+    sample_2 = os.path.basename(skim_2).split('.f')[0]
     if sample_1 == sample_2 and lib_1 == lib_2:
         return sample_1, sample_2, 0.0
     sample_dir_1 = os.path.join(lib_1, sample_1)
@@ -153,7 +167,21 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres
         else:
             sys.exit('Distance between {0} and {1} is not in range [0-0.75]; Unable to apply Jukes-Cantor ' +
                      'transformation'.format(sample_1, sample_2))
-    return sample_1, sample_2, d
+
+    read_ratios = []
+    format_1 = 'fastq'
+    if os.path.basename(skim_1).split('.f')[1] in {'na', 'asta', 'a'}:
+        format_1 = 'fasta'
+    records = SeqIO.parse(skim_1, format_1)
+    mercnt_2 = os.path.join(sample_dir_2, sample_2 + '.jf')
+    for record in records:
+        read = str(record.seq)
+        ratio = compute_shared_kmers(read, mercnt_2, k)
+        read_ratios.append(ratio)
+    d_mean = np.mean(read_dists)
+    d_var = np.var(read_dists)
+
+    return sample_1, sample_2, d, d_mean, d_var
 
 
 def reference(args):
@@ -225,9 +253,9 @@ def reference(args):
     # Estimating pair-wise distances
     sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(n_pool_dist))
     pool_dist = mp.Pool(n_pool_dist)
-    results_dist = [pool_dist.apply_async(estimate_dist, args=(s1, s2, args.l, args.l, cov_est, len_est, err_est,
+    results_dist = [pool_dist.apply_async(estimate_dist, args=(gm1, gm2, args.l, args.l, cov_est, len_est, err_est,
                                                                read_len, args.k, coverage_threshold, args.t))
-                    for s1 in samples_names for s2 in samples_names]
+                    for gm1 in genome_skims for gm2 in genome_skims]
 
     for result in results_dist:
         dist_output = result.get()
