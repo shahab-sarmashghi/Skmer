@@ -60,85 +60,85 @@ def hist_func_new(x, eps, q_1, q_2, q_3, q_4, q_5):
 def estimate_cov(skim, lib, k, e, nth):
     sample = os.path.basename(skim).split('.f')[0]
     sample_dir = os.path.join(lib, sample)
-    try:
-        os.makedirs(sample_dir)
-    except OSError as Error:
-        if Error.errno != errno.EEXIST:
-            raise
-    mercnt = os.path.join(sample_dir, sample + '.jf')
-    histo_file = os.path.join(sample_dir, sample + '.hist')
-    call(["jellyfish", "count", "-m", str(k), "-s", "100M", "-t", str(nth), "-C", "-o", mercnt, skim],
-         stderr=open(os.devnull, 'w'))
-    histo_stderr = check_output(["jellyfish", "histo", "-h", "1000000", mercnt], stderr=STDOUT, universal_newlines=True)
-    with open(histo_file, mode='w') as f:
-        f.write(histo_stderr)
-    os.remove(mercnt)
-    count = {0: 0}
-    multiplicity = [0]
-    ksum = 0
-    for item in histo_stderr.split('\n')[:-1]:
-        count[int(item.split()[0])] = int(item.split()[1])
-        multiplicity.append(float(item.split()[0]))
-        ksum += int(item.split()[1]) * int(item.split()[0])
-    if len(count) < 3:
-        raise ValueError('Coverage of {0} is too low; unable to estimate it'.format(sample))
-    count_ef = {x: count[x] for x in count if x not in [0, 1]}
-    ind = min(max(count_ef, key=count_ef.get), len(count) - 2)  # The second argument needs to be safeguarded
-
-    l = compute_read_length(skim)
-    if e is not None:
-        pass
-        # Needs to be completed later
-        # eps = e
-        # p0 = np.exp(-k * eps)
-        # if ind < 2:
-        #     r21 = 1.0 * count[2] / count[1]
-        #     cov = newton(cov_func, 0.05, args=(r21, p0, k, l))
-        # else:
-        #     cov = (1.0 / p0) * (1.0 * l / (l - k)) * (ind + 1) * count[ind + 1] / count[ind]
-    elif ind < 2:
-        raise ValueError('Not enough information to co-estimate coverage and error rate of {0}'.format(sample))
-    else:
-        gam = 1.0 * (ind + 1) * count[ind + 1] / count[ind]
-        lam_0 = (np.exp(-gam) * (gam ** ind) / np.math.factorial(ind)) * count[1] / count[ind] + gam * (1 - np.exp(-gam))
-        eps_0 = 1 - (gam / lam_0) ** (1.0 / k)
-        cov_0 = (1.0 * l / (l - k)) * lam_0
-        zeta_0 = lam_0 * (1 - eps_0) ** k
-
-    tot_seq = 1.0 * ksum * l / (l - k)
-    g_len_0 = int(tot_seq / cov_0)
-    n_rep_term = 5
-    n_bins = 20
-    x_0 = list(g_len_0 * np.array([0.9, 0.09, 0.009, 0.0005, 0.005]))
-    xdata_0 = multiplicity[1:n_bins + 1]
-    ydata_0 = [count[x] for x in xdata_0]
-    xdata_0 = [(k, 1.0 * ksum)] + xdata_0
-    popt, pcov = curve_fit(hist_func_new, xdata_0, ydata_0, p0=[eps_0]+x_0,
-                           bounds=(0, [10*eps_0, 10*g_len_0, 10*g_len_0, 10*g_len_0, 10*g_len_0, 10*g_len_0]))
-    eps = popt[0]
-    q = popt[1:]
-    J = np.linspace(1, len(q), len(q))
-    g_len = np.dot(q, J)
-    lam = xdata_0[0][1] / g_len
-    cov = (1.0 * l / (l - k)) * lam
-    rep_prob = list(1.0 * q / sum(q))
+    # try:
+    #     os.makedirs(sample_dir)
+    # except OSError as Error:
+    #     if Error.errno != errno.EEXIST:
+    #         raise
+    # mercnt = os.path.join(sample_dir, sample + '.jf')
+    # histo_file = os.path.join(sample_dir, sample + '.hist')
+    # call(["jellyfish", "count", "-m", str(k), "-s", "100M", "-t", str(nth), "-C", "-o", mercnt, skim],
+    #      stderr=open(os.devnull, 'w'))
+    # histo_stderr = check_output(["jellyfish", "histo", "-h", "1000000", mercnt], stderr=STDOUT, universal_newlines=True)
+    # with open(histo_file, mode='w') as f:
+    #     f.write(histo_stderr)
+    # os.remove(mercnt)
+    # count = {0: 0}
+    # multiplicity = [0]
+    # ksum = 0
+    # for item in histo_stderr.split('\n')[:-1]:
+    #     count[int(item.split()[0])] = int(item.split()[1])
+    #     multiplicity.append(float(item.split()[0]))
+    #     ksum += int(item.split()[1]) * int(item.split()[0])
+    # if len(count) < 3:
+    #     raise ValueError('Coverage of {0} is too low; unable to estimate it'.format(sample))
+    # count_ef = {x: count[x] for x in count if x not in [0, 1]}
+    # ind = min(max(count_ef, key=count_ef.get), len(count) - 2)  # The second argument needs to be safeguarded
+    #
+    # l = compute_read_length(skim)
+    # if e is not None:
+    #     pass
+    #     # Needs to be completed later
+    #     # eps = e
+    #     # p0 = np.exp(-k * eps)
+    #     # if ind < 2:
+    #     #     r21 = 1.0 * count[2] / count[1]
+    #     #     cov = newton(cov_func, 0.05, args=(r21, p0, k, l))
+    #     # else:
+    #     #     cov = (1.0 / p0) * (1.0 * l / (l - k)) * (ind + 1) * count[ind + 1] / count[ind]
+    # elif ind < 2:
+    #     raise ValueError('Not enough information to co-estimate coverage and error rate of {0}'.format(sample))
+    # else:
+    #     gam = 1.0 * (ind + 1) * count[ind + 1] / count[ind]
+    #     lam_0 = (np.exp(-gam) * (gam ** ind) / np.math.factorial(ind)) * count[1] / count[ind] + gam * (1 - np.exp(-gam))
+    #     eps_0 = 1 - (gam / lam_0) ** (1.0 / k)
+    #     cov_0 = (1.0 * l / (l - k)) * lam_0
+    #     zeta_0 = lam_0 * (1 - eps_0) ** k
+    #
+    # tot_seq = 1.0 * ksum * l / (l - k)
+    # g_len_0 = int(tot_seq / cov_0)
+    # n_rep_term = 5
+    # n_bins = 20
+    # x_0 = list(g_len_0 * np.array([0.9, 0.09, 0.009, 0.0005, 0.005]))
+    # xdata_0 = multiplicity[1:n_bins + 1]
+    # ydata_0 = [count[x] for x in xdata_0]
+    # xdata_0 = [(k, 1.0 * ksum)] + xdata_0
+    # popt, pcov = curve_fit(hist_func_new, xdata_0, ydata_0, p0=[eps_0]+x_0,
+    #                        bounds=(0, [10*eps_0, 10*g_len_0, 10*g_len_0, 10*g_len_0, 10*g_len_0, 10*g_len_0]))
+    # eps = popt[0]
+    # q = popt[1:]
+    # J = np.linspace(1, len(q), len(q))
+    # g_len = np.dot(q, J)
+    # lam = xdata_0[0][1] / g_len
+    # cov = (1.0 * l / (l - k)) * lam
+    # rep_prob = list(1.0 * q / sum(q))
 
     info_file = os.path.join(sample_dir, sample + '.dat')
-    q_string = ''
-    for prob in rep_prob:
-        q_string += repr(prob) + '\t'
-    with open(info_file, mode='w') as f:
-        f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
-                'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l) +
-                'repeat_profile\t{0}\n'.format(q_string.strip()))
+    # q_string = ''
+    # for prob in rep_prob:
+    #     q_string += repr(prob) + '\t'
+    # with open(info_file, mode='w') as f:
+    #     f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
+    #             'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l) +
+    #             'repeat_profile\t{0}\n'.format(q_string.strip()))
 
-    # with open(info_file) as f:
-    #     info = f.read()
-    # cov = float(info.split('\n')[0].split('\t')[1])
-    # g_len = float(info.split('\n')[1].split('\t')[1])
-    # eps = float(info.split('\n')[2].split('\t')[1])
-    # l = float(info.split('\n')[3].split('\t')[1])
-    # rep_prob = [float(x) for x in info.split('\n')[4].split('\t')[1:]]
+    with open(info_file) as f:
+        info = f.read()
+    cov = float(info.split('\n')[0].split('\t')[1])
+    g_len = float(info.split('\n')[1].split('\t')[1])
+    eps = float(info.split('\n')[2].split('\t')[1])
+    l = float(info.split('\n')[3].split('\t')[1])
+    rep_prob = [float(x) for x in info.split('\n')[4].split('\t')[1:]]
 
     return sample, cov, g_len, eps, l, rep_prob
 
@@ -275,6 +275,90 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, re, k, tran)
     return sample_1, sample_2, d
 
 
+def rep_func_3(x, q, C, m_1, lam_1, m_2, lam_2):
+    s = -C
+    for j in range(1, len(q)):
+        ss_1 = 0
+        for t in range(m_1):
+            for i in range(j+1):
+              ss_1 += binomial_pmf(x, i, j) * poisson(i*lam_1, t)
+        ss_2 = 0
+        for t in range(m_2):
+            for i in range(j+1):
+              ss_2 += binomial_pmf(x, i, j) * poisson(i*lam_2, t)
+        s += q[j] * (1 - ss_1) * (1 - ss_2)
+    return s
+
+
+def estimate_dist_symm(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, re, k, tran):
+    if sample_1 == sample_2 and lib_1 == lib_2:
+        return sample_1, sample_2, 0.0
+    sample_dir_1 = os.path.join(lib_1, sample_1)
+    sample_dir_2 = os.path.join(lib_2, sample_2)
+    msh_1 = os.path.join(sample_dir_1, sample_1 + ".msh")
+    msh_2 = os.path.join(sample_dir_2, sample_2 + ".msh")
+    n_terms = 5
+    q_1 = [0]
+    q_2 = [0]
+    q_1 += re[sample_1]
+    q_2 += re[sample_2]
+    dist_stderr = check_output(["mash", "dist", msh_1, msh_2], stderr=STDOUT, universal_newlines=True)
+    jac = float(dist_stderr.split()[4].split("/")[0]) / float(dist_stderr.split()[4].split("/")[1])
+    gl_1 = le[sample_1]
+    gl_2 = le[sample_2]
+    cov_1 = ce[sample_1]
+    cov_2 = ce[sample_2]
+    eps_1 = ee[sample_1]
+    eps_2 = ee[sample_2]
+    p_1 = np.exp(-k * eps_1)
+    p_2 = np.exp(-k * eps_2)
+    l_1 = rl[sample_1]
+    l_2 = rl[sample_2]
+    lam_1 = cov_1 * (l_1 - k) / l_1
+    lam_2 = cov_2 * (l_2 - k) / l_2
+    m_1 = poisson_percent(lam_1 * p_1, 0.95)
+    m_2 = poisson_percent(lam_2 * p_2, 0.95)
+    r_1 = temp_func(cov_1, p_1, k, l_1, m_1)
+    r_2 = temp_func(cov_2, p_2, k, l_2, m_2)
+    wp = r_1[0] * r_2[0] * (gl_1 + gl_2) / 2
+    zp = sum(r_1) * gl_1 + sum(r_2) * gl_2
+    d_0 = max(0, 1 - (zp * jac / (wp * (1 + jac))) ** (1.0 / k))
+
+    # A = [0]
+    # B = 0
+    q = [0]
+    R_1 = 0
+    R_2 = 0
+    D = 0
+    for j in range(1, n_terms + 1):
+        # A.append(q_1[j] * poisson_survival(j*lam_1*p_1, m_1))
+        # B -= A[j]
+        q.append(q_1[j] / 2 + q_2[j] / 2)
+        R_1 += q_1[j] * j
+        R_2 += q_2[j] * j
+        D += q_1[j] * poisson_survival(j*lam_1*p_1, m_1) + q_2[j] * poisson_survival(j*lam_2*p_2, m_2)
+
+    C = (jac / (1 + jac)) * (D + R_1 * error_coef(lam_1, p_1, m_1) + R_2 * error_coef(lam_2, p_2, m_2))
+
+    x_0 = (1 - d_0 / 2.0) ** k
+    # x = newton(rep_func_2, x_0, args=(A, B, C, m_2, lam_2*p_2), maxiter=5000)
+    x = newton(rep_func_3, x_0, args=(q, C, m_1, lam_1*p_1, m_2, lam_2*p_2), maxiter=5000)
+    if 0 < x < 1:
+        d = 2 * (1 - x ** (1.0/k))
+    elif x > 1:
+        d = 0
+    else:
+        raise ValueError('Distance larger than 1!')
+
+    if tran:
+        if d < 0.75:
+            d = -0.75 * np.log(1 - 4.0 * d / 3.0)
+        else:
+            raise ValueError('Distance between {0} and {1} is not in range [0-0.75]; Unable to apply Jukes-Cantor ' +
+                     'transformation'.format(sample_1, sample_2))
+    return sample_1, sample_2, d
+
+
 def reference(args):
 
     # Creating a directory for reference library
@@ -334,19 +418,19 @@ def reference(args):
     pool_cov.join()
 
     # Sketching genome-skims
-    sys.stderr.write('[skmer] Sketching genome-skims using {0} processors...\n'.format(n_pool))
-    pool_sketch = mp.Pool(n_pool)
-    results_sketch = [pool_sketch.apply_async(sketch, args=(gm, args.l, cov_est, err_est, args.k, args.s, read_len))
-                      for gm in genome_skims]
-    for result in results_sketch:
-        result.get()
-    pool_sketch.close()
-    pool_sketch.join()
+    # sys.stderr.write('[skmer] Sketching genome-skims using {0} processors...\n'.format(n_pool))
+    # pool_sketch = mp.Pool(n_pool)
+    # results_sketch = [pool_sketch.apply_async(sketch, args=(gm, args.l, cov_est, err_est, args.k, args.s, read_len))
+    #                   for gm in genome_skims]
+    # for result in results_sketch:
+    #     result.get()
+    # pool_sketch.close()
+    # pool_sketch.join()
 
     # Estimating pair-wise distances
     sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(n_pool_dist))
     pool_dist = mp.Pool(n_pool_dist)
-    results_dist = [pool_dist.apply_async(estimate_dist, args=(s1, s2, args.l, args.l, cov_est, len_est, err_est,
+    results_dist = [pool_dist.apply_async(estimate_dist_symm, args=(s1, s2, args.l, args.l, cov_est, len_est, err_est,
                                                                read_len, rep_est, args.k, args.t))
                     for s1 in samples_names for s2 in samples_names]
 
@@ -424,7 +508,7 @@ def query(args):
     # Estimating pair-wise distances
     sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(n_pool_dist))
     pool_dist = mp.Pool(n_pool_dist)
-    results_dist = [pool_dist.apply_async(estimate_dist, args=(sample, ref, os.getcwd(), args.library, cov_est, len_est,
+    results_dist = [pool_dist.apply_async(estimate_dist_symm, args=(sample, ref, os.getcwd(), args.library, cov_est, len_est,
                                                                err_est, read_len, rep_est, kl, args.t))
                     for ref in refs]
     for result in results_dist:
