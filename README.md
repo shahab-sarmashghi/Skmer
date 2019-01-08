@@ -11,8 +11,8 @@ Installation
 2. Add the bioconda channel by running the following commands in your terminal (order matters):
 ```
     conda config --add channels defaults
-    conda config --add channels conda-forge
     conda config --add channels bioconda
+    conda config --add channels conda-forge
 ```
 3. Run the following command to install Skmer (and all dependencies) 
 ```
