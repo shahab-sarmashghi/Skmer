@@ -433,9 +433,9 @@ def main():
     # parser.add_argument('-v', '--version', action='store_true', help='print the current version')
     parser.add_argument('--debug', action='store_true', help='Print the traceback when an exception is raised')
     subparsers = parser.add_subparsers(title='commands',
-                                       description='reference   Process a library of reference genome-skims\n'
+                                       description='reference   Process a library of reference genome-skims or assemblies\n'
                                                    'distance    Compute pairwise distances for a processed library\n'
-                                                   'query       Compare an input genome-skim against a reference ' +
+                                                   'query       Compare a genome-skim or assembly against a reference ' +
                                                    'library',
                                        help='Run skmer {commands} [-h] for additional help',
                                        dest='{commands}')
@@ -446,8 +446,8 @@ def main():
         subparsers.required = True
 
     # Reference command subparser
-    parser_ref = subparsers.add_parser('reference', description='Process a library of reference genome-skims')
-    parser_ref.add_argument('input_dir', help='Directory of input genome-skims (dir of .fastq files)')
+    parser_ref = subparsers.add_parser('reference', description='Process a library of reference genome-skims or assemblies')
+    parser_ref.add_argument('input_dir', help='Directory of input genome-skims or assemblies (dir of .fastq/.fq/.fa/.fna/.fasta files)')
     parser_ref.add_argument('-l', default=os.path.join(os.getcwd(), 'library'),
                             help='Directory of output (reference) library. Default: working_directory/library')
     parser_ref.add_argument('-o', default='ref-dist-mat',
@@ -477,8 +477,8 @@ def main():
     parser_dist.set_defaults(func=distance)
     
     # query command subparser
-    parser_qry = subparsers.add_parser('query', description='Compare an input genome-skim against a reference library')
-    parser_qry.add_argument('input', help='Input (query) genome-skim (a .fastq file)')
+    parser_qry = subparsers.add_parser('query', description='Compare an input genome-skim or assembly against a reference library')
+    parser_qry.add_argument('input', help='Input (query) genome-skim or assembly (a .fastq/.fq/.fa/.fna/.fasta file)')
     parser_qry.add_argument('library', help='Directory of (reference) library')
     parser_qry.add_argument('-a', action='store_true',
                             help='Add the processed input (query) to the (reference) library')
