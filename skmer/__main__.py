@@ -15,7 +15,7 @@ from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
 
-__version__ = 'skmer 2.0.0'
+__version__ = 'skmer 2.0.1'
 
 
 # Hard-coded param
