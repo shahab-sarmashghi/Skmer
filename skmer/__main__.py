@@ -15,7 +15,7 @@ from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
 
-__version__ = 'skmer 2.0.1'
+__version__ = 'skmer 2.0.2'
 
 
 # Hard-coded param
@@ -188,8 +188,8 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres
         if d < 0.75:
             d = max(0, -0.75 * np.log(1 - 4.0 * d / 3.0))
         else:
-            raise ValueError('Distance between {0} and {1} is not in range [0, 0.75); Unable to apply Jukes-Cantor ' +
-                             'transformation'.format(sample_1, sample_2))
+            raise ValueError('Distance between {0} and {1} '.format(sample_1, sample_2) +
+                             'is not in range [0, 0.75); Unable to apply Jukes-Cantor transformation')
     return sample_1, sample_2, d
 
 
@@ -427,15 +427,15 @@ def query(args):
 
 def main():
     # Input arguments parser
-    parser = argparse.ArgumentParser(description='{} - Estimating gonomic distances between '
-                                                 'genome-skims'.format(__version__),
+    parser = argparse.ArgumentParser(description='{0} - Estimating gonomic distances between '.format(__version__) +
+                                                 'genome-skims',
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     # parser.add_argument('-v', '--version', action='store_true', help='print the current version')
     parser.add_argument('--debug', action='store_true', help='Print the traceback when an exception is raised')
     subparsers = parser.add_subparsers(title='commands',
                                        description='reference   Process a library of reference genome-skims or assemblies\n'
                                                    'distance    Compute pairwise distances for a processed library\n'
-                                                   'query       Compare a genome-skim or assembly against a reference ' +
+                                                   'query       Compare a genome-skim or assembly against a reference '
                                                    'library',
                                        help='Run skmer {commands} [-h] for additional help',
                                        dest='{commands}')
