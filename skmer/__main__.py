@@ -14,50 +14,32 @@ import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-
-__version__ = 'skmer 2.0.2'
-
+__version__ = 'skmer 3.0.0'
 
 # Hard-coded param
 coverage_threshold = 5
+error_rate_threshold = 0.03
+seq_len_threshold = 2000
 
 
-def find_len(fasta):
-    total_length = 0
-    comp_stdout = check_output(["seqtk", "comp", fasta], stderr=STDOUT, universal_newlines=True)
-    contigs_stat = comp_stdout.split('\n')
-    for stat in contigs_stat:
-        if not stat.strip():
-            continue
-        base_counts = [int(x) for x in stat.split('\t')[2:6]]
-        total_length += sum(base_counts)
-    return total_length
-
-
-def compute_read_length(fastq, lib):
-    sample = os.path.basename(fastq).rsplit('.f', 1)[0]
-    sample_dir = os.path.join(lib, sample)
-    subsampled_fastq = os.path.join(sample_dir, sample + '_subsampled.fastq')
-    sample_size = 1000
-    sample_stdout = check_output(['seqtk', 'sample', fastq, str(sample_size)], stderr=STDOUT, universal_newlines=True)
-    with open(subsampled_fastq, mode='w') as f:
-        f.write(sample_stdout)
+def sequence_stat(sequence):
     total_length = 0
     n_reads = 0
-    comp_stdout = check_output(["seqtk", "comp", subsampled_fastq], stderr=STDOUT, universal_newlines=True)
-    os.remove(subsampled_fastq)
+    max_length = 0
+    comp_stdout = check_output(["seqtk", "comp", sequence], stderr=STDOUT, universal_newlines=True)
     reads_stat = comp_stdout.split('\n')
     for stat in reads_stat:
         if not stat.strip():
             continue
-        read_length = int(stat.split('\t')[1])
+        read_length = sum([int(x) for x in stat.split('\t')[2:6]])
         total_length += read_length
+        max_length = max(max_length, read_length)
         n_reads += 1
-    return int(round(1.0 * total_length / n_reads))
+    return int(round(1.0 * total_length / n_reads)), max_length, total_length
 
 
 def cov_temp_func(x, r, p, k, l):
-    lam = x * (1.0 * (l-k)) / l
+    lam = x * (1.0 * (l - k)) / l
     return lam * (p ** 2) * np.exp(-lam * p) - 2 * r * (p * np.exp(-lam * p) + 1 - p)
 
 
@@ -71,12 +53,12 @@ def estimate_cov(sequence, lib, k, e, nth):
             raise
     info_file = os.path.join(sample_dir, sample + '.dat')
 
-    fasta_formats = ['.fa', '.fna', '.fasta']
-    if True in (fnmatch.fnmatch(sequence, '*' + form) for form in fasta_formats):
-        cov = "NaN"
-        g_len = find_len(sequence)
-        eps = "NaN"
-        l = "NaN"
+    (l, ml, tl) = sequence_stat(sequence)
+    if ml > seq_len_threshold:
+        cov = "NA"
+        g_len = tl
+        eps = 0
+        l = "NA"
         with open(info_file, mode='w') as f:
             f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) +
                     'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
@@ -97,8 +79,7 @@ def estimate_cov(sequence, lib, k, e, nth):
         ksum += int(item.split()[0]) * int(item.split()[1])
     if len(count) < 3:
         raise ValueError('Coverage of {0} is too low; unable to estimate it'.format(sample))
-    ind = min(count.index(max(count[2:])), len(count)-2)
-    l = compute_read_length(sequence, lib)
+    ind = min(count.index(max(count[2:])), len(count) - 2)
     if e is not None:
         eps = e
         p0 = np.exp(-k * eps)
@@ -117,6 +98,11 @@ def estimate_cov(sequence, lib, k, e, nth):
     tot_seq = 1.0 * ksum * l / (l - k)
     g_len = int(tot_seq / cov)
 
+    if eps > error_rate_threshold:
+        cov = "NA"
+        g_len = "NA"
+        eps = "NA"
+
     with open(info_file, mode='w') as f:
         f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
                 'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l))
@@ -127,12 +113,14 @@ def sketch(sequence, lib, ce, ee, k, s, cov_thres):
     sample = os.path.basename(sequence).rsplit('.f', 1)[0]
     sample_dir = os.path.join(lib, sample)
     msh = os.path.join(sample_dir, sample)
-    fasta_formats = ['.fa', '.fna', '.fasta']
-    if True in (fnmatch.fnmatch(sequence, '*' + form) for form in fasta_formats):
-        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-o", msh, sequence], stderr=open(os.devnull, 'w'))
-        return
     cov = ce[sample]
     eps = ee[sample]
+    if cov == "NA" and eps == 0:
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-o", msh, sequence], stderr=open(os.devnull, 'w'))
+        return
+    elif eps == "NA":
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, sequence], stderr=open(os.devnull, 'w'))
+        return
     copy_thres = int(cov / cov_thres) + 1
     if cov < cov_thres or eps == 0.0:
         call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, sequence], stderr=open(os.devnull, 'w'))
@@ -150,7 +138,7 @@ def jacc2dist(j, k, gl1, gl2, len_penalty):
 
 
 def dist_temp_func(cov, eps, k, l, cov_thres):
-    if cov == "NaN":
+    if cov == "NA":
         return [1.0, 0]
     p = np.exp(-k * eps)
     copy_thres = int(1.0 * cov / cov_thres) + 1
@@ -173,6 +161,9 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres
     j = float(dist_stderr.split()[4].split("/")[0]) / float(dist_stderr.split()[4].split("/")[1])
     gl_1 = le[sample_1]
     gl_2 = le[sample_2]
+    if gl_1 == "NA" or gl_2 == "NA":
+        gl_1 = 1
+        gl_2 = 1
     cov_1 = ce[sample_1]
     cov_2 = ce[sample_2]
     eps_1 = ee[sample_1]
@@ -188,13 +179,11 @@ def estimate_dist(sample_1, sample_2, lib_1, lib_2, ce, le, ee, rl, k, cov_thres
         if d < 0.75:
             d = max(0, -0.75 * np.log(1 - 4.0 * d / 3.0))
         else:
-            raise ValueError('Distance between {0} and {1} '.format(sample_1, sample_2) +
-                             'is not in range [0, 0.75); Unable to apply Jukes-Cantor transformation')
+            d = 5.0
     return sample_1, sample_2, d
 
 
 def reference(args):
-
     # Creating a directory for reference library
     try:
         os.makedirs(args.l)
@@ -304,11 +293,18 @@ def distance(args):
         with open(info_file) as f:
             info = f.read()
         cov_value = info.split('\n')[0].split('\t')[1]
-        if cov_value == "NaN":
-            cov_est[ref] = "NaN"
-            len_est[ref] = int(info.split('\n')[1].split('\t')[1])
-            err_est[ref] = "NaN"
-            read_len[ref] = "NaN"
+        gl_value = info.split('\n')[1].split('\t')[1]
+        if cov_value == "NA":
+            if gl_value == "NA":
+                cov_est[ref] = "NA"
+                len_est[ref] = "NA"
+                err_est[ref] = "NA"
+                read_len[ref] = int(info.split('\n')[3].split('\t')[1])
+            else:
+                cov_est[ref] = "NA"
+                len_est[ref] = int(info.split('\n')[1].split('\t')[1])
+                err_est[ref] = 0
+                read_len[ref] = "NA"
         else:
             cov_est[ref] = float(info.split('\n')[0].split('\t')[1])
             len_est[ref] = int(info.split('\n')[1].split('\t')[1])
@@ -375,11 +371,18 @@ def query(args):
         with open(info_file) as f:
             info = f.read()
         cov_value = info.split('\n')[0].split('\t')[1]
-        if cov_value == "NaN":
-            cov_est[ref] = "NaN"
-            len_est[ref] = int(info.split('\n')[1].split('\t')[1])
-            err_est[ref] = "NaN"
-            read_len[ref] = "NaN"
+        gl_value = info.split('\n')[1].split('\t')[1]
+        if cov_value == "NA":
+            if gl_value == "NA":
+                cov_est[ref] = "NA"
+                len_est[ref] = "NA"
+                err_est[ref] = "NA"
+                read_len[ref] = int(info.split('\n')[3].split('\t')[1])
+            else:
+                cov_est[ref] = "NA"
+                len_est[ref] = int(info.split('\n')[1].split('\t')[1])
+                err_est[ref] = 0
+                read_len[ref] = "NA"
         else:
             cov_est[ref] = float(info.split('\n')[0].split('\t')[1])
             len_est[ref] = float(info.split('\n')[1].split('\t')[1])
@@ -439,26 +442,28 @@ def main():
                                                    'library',
                                        help='Run skmer {commands} [-h] for additional help',
                                        dest='{commands}')
-    
+
     # To make sure that subcommand is required in python >= 3.3
     python_version = sys.version_info
     if (python_version[0] * 10 + python_version[1]) >= 33:
         subparsers.required = True
 
     # Reference command subparser
-    parser_ref = subparsers.add_parser('reference', description='Process a library of reference genome-skims or assemblies')
-    parser_ref.add_argument('input_dir', help='Directory of input genome-skims or assemblies (dir of .fastq/.fq/.fa/.fna/.fasta files)')
+    parser_ref = subparsers.add_parser('reference',
+                                       description='Process a library of reference genome-skims or assemblies')
+    parser_ref.add_argument('input_dir',
+                            help='Directory of input genome-skims or assemblies (dir of .fastq/.fq/.fa/.fna/.fasta files)')
     parser_ref.add_argument('-l', default=os.path.join(os.getcwd(), 'library'),
                             help='Directory of output (reference) library. Default: working_directory/library')
     parser_ref.add_argument('-o', default='ref-dist-mat',
                             help='Output (distances) prefix. Default: ref-dist-mat')
     parser_ref.add_argument('-k', type=int, choices=list(range(1, 32)), default=31, help='K-mer length [1-31]. ' +
                                                                                          'Default: 31', metavar='K')
-    parser_ref.add_argument('-s', type=int, default=10**7, help='Sketch size. Default: 10000000')
+    parser_ref.add_argument('-s', type=int, default=10 ** 7, help='Sketch size. Default: 10000000')
     parser_ref.add_argument('-e', type=float, help='Base error rate. By default, the error rate is automatically '
                                                    'estimated.')
     parser_ref.add_argument('-t', action='store_true',
-                            help='Apply Jukes-Cantor transformation to distances')
+                            help='Apply Jukes-Cantor transformation to distances. Output 5.0 if not applicable')
     parser_ref.add_argument('-p', type=int, choices=list(range(1, mp.cpu_count() + 1)), default=mp.cpu_count(),
                             help='Max number of processors to use [1-{0}]. '.format(mp.cpu_count()) +
                                  'Default for this machine: {0}'.format(mp.cpu_count()), metavar='P')
@@ -470,14 +475,15 @@ def main():
     parser_dist.add_argument('-o', default='ref-dist-mat',
                              help='Output (distances) prefix. Default: ref-dist-mat')
     parser_dist.add_argument('-t', action='store_true',
-                             help='Apply Jukes-Cantor transformation to distances')
+                             help='Apply Jukes-Cantor transformation to distances. Output 5.0 if not applicable')
     parser_dist.add_argument('-p', type=int, choices=list(range(1, mp.cpu_count() + 1)), default=mp.cpu_count(),
                              help='Max number of processors to use [1-{0}]. '.format(mp.cpu_count()) +
                                   'Default for this machine: {0}'.format(mp.cpu_count()), metavar='P')
     parser_dist.set_defaults(func=distance)
-    
+
     # query command subparser
-    parser_qry = subparsers.add_parser('query', description='Compare an input genome-skim or assembly against a reference library')
+    parser_qry = subparsers.add_parser('query',
+                                       description='Compare an input genome-skim or assembly against a reference library')
     parser_qry.add_argument('input', help='Input (query) genome-skim or assembly (a .fastq/.fq/.fa/.fna/.fasta file)')
     parser_qry.add_argument('library', help='Directory of (reference) library')
     parser_qry.add_argument('-a', action='store_true',
@@ -487,7 +493,7 @@ def main():
     parser_qry.add_argument('-e', type=float, help='Base error rate. By default, the error rate is automatically '
                                                    'estimated.')
     parser_qry.add_argument('-t', action='store_true',
-                            help='Apply Jukes-Cantor transformation to distances')
+                            help='Apply Jukes-Cantor transformation to distances. Output 5.0 if not applicable')
     parser_qry.add_argument('-p', type=int, choices=list(range(1, mp.cpu_count() + 1)), default=mp.cpu_count(),
                             help='Max number of processors to use [1-{0}]. '.format(mp.cpu_count()) +
                                  'Default for this machine: {0}'.format(mp.cpu_count()), metavar='P')
@@ -501,6 +507,7 @@ def main():
             debug_hook(exception_type, exception, traceback)
         else:
             print("{0}: {1}".format(exception_type.__name__, exception))
+
     sys.excepthook = exception_handler
 
     args.func(args)
