@@ -14,12 +14,13 @@ import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-__version__ = 'skmer 3.0.0'
+__version__ = 'skmer 3.0.1'
 
 # Hard-coded param
 coverage_threshold = 5
 error_rate_threshold = 0.03
 seq_len_threshold = 2000
+default_error_rate = 0.01
 
 
 def sequence_stat(sequence):
@@ -78,7 +79,14 @@ def estimate_cov(sequence, lib, k, e, nth):
         count.append(int(item.split()[1]))
         ksum += int(item.split()[0]) * int(item.split()[1])
     if len(count) < 3:
-        raise ValueError('Coverage of {0} is too low; unable to estimate it'.format(sample))
+        sys.stderr.write('Coverage of {0} is too low, not able to estimate it; no correction applied\n'.format(sample))
+        cov = "NA"
+        g_len = "NA"
+        eps = "NA"
+        with open(info_file, mode='w') as f:
+            f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) +
+                    'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
+        return sample, cov, g_len, eps, l
     ind = min(count.index(max(count[2:])), len(count) - 2)
     if e is not None:
         eps = e
@@ -89,7 +97,12 @@ def estimate_cov(sequence, lib, k, e, nth):
         else:
             cov = (1.0 / p0) * (1.0 * l / (l - k)) * (ind + 1) * count[ind + 1] / count[ind]
     elif ind < 2:
-        raise ValueError('Not enough information to co-estimate coverage and error rate of {0}'.format(sample))
+        sys.stderr.write('Not enough information to co-estimate coverage and error rate of {0}; '.format(sample) +
+                         'Using default error rate {0}\n'.format(default_error_rate))
+        eps = default_error_rate
+        p0 = np.exp(-k * eps)
+        r21 = 1.0 * count[2] / count[1]
+        cov = newton(cov_temp_func, 0.05, args=(r21, p0, k, l))
     else:
         gam = 1.0 * (ind + 1) * count[ind + 1] / count[ind]
         lam = (np.exp(-gam) * (gam ** ind) / np.math.factorial(ind)) * count[1] / count[ind] + gam * (1 - np.exp(-gam))
@@ -98,10 +111,14 @@ def estimate_cov(sequence, lib, k, e, nth):
     tot_seq = 1.0 * ksum * l / (l - k)
     g_len = int(tot_seq / cov)
 
-    if eps > error_rate_threshold:
+    if eps > error_rate_threshold or eps < 0:
         cov = "NA"
         g_len = "NA"
         eps = "NA"
+        with open(info_file, mode='w') as f:
+            f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) +
+                    'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
+        return sample, cov, g_len, eps, l
 
     with open(info_file, mode='w') as f:
         f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
@@ -385,9 +402,9 @@ def query(args):
                 read_len[ref] = "NA"
         else:
             cov_est[ref] = float(info.split('\n')[0].split('\t')[1])
-            len_est[ref] = float(info.split('\n')[1].split('\t')[1])
+            len_est[ref] = int(info.split('\n')[1].split('\t')[1])
             err_est[ref] = float(info.split('\n')[2].split('\t')[1])
-            read_len[ref] = float(info.split('\n')[3].split('\t')[1])
+            read_len[ref] = int(info.split('\n')[3].split('\t')[1])
 
     # Number of pools for multi-processing
     n_pool_dist = min(args.p, len(refs))

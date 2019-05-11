@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='skmer',
-      version='3.0.0',
+      version='3.0.1',
       description='Assembly-free and alignment-free tool for estimating genomic distances between genome-skims',
       author='Shahab Sarmashghi',
       author_email='ssarmash@ucsd.edu',
