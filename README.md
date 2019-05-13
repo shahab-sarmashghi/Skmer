@@ -1,6 +1,6 @@
 # Skmer
-Skmer is a fast tool for estimating distances between genomes from low-coverage sequencing reads (genome-skims), without needing any assembly or alignment step. The preprint where we have described the methods and tested Skmer on simulated short reads is available on bioRxiv:
-  - [Sarmashghi, S., Bohmann, K., Gilbert, M. T. P., Bafna, V., & Mirarab, S. (2018). Assembly-free and alignment-free sample identification using genome skims. bioRxiv. https://doi.org/10.1101/230409][1]
+Skmer is a fast tool for estimating distances between genomes from low-coverage sequencing reads (genome-skims), without needing any assembly or alignment step. The paper where we have described the methods and tested Skmer on simulated short reads and SRA's from previous sequencing experiments is available online (open access):
+  - [Sarmashghi, S., Bohmann, K., P. Gilbert, M. T., Bafna, V., & Mirarab, S. (2019). Skmer: assembly-free and alignment-free sample identification using genome skims. Genome Biology, 20(1), 34. https://doi.org/10.1186/s13059-019-1632-4][1]
 
 Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. 
 
@@ -69,7 +69,7 @@ skmer query qry.fastq library -o output_prefix
 ```
 If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
 
-[1]: https://www.biorxiv.org/content/early/2018/04/02/230409
+[1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
 [3]: http://mash.readthedocs.io/en/latest/
 [4]: https://conda.io/miniconda.html
