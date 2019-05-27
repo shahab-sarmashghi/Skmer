@@ -3,7 +3,7 @@
 
 
 import numpy as np
-from scipy.optimize import newton
+from scipy.optimize import newton, curve_fit
 import argparse
 import os
 import shutil
@@ -14,7 +14,7 @@ import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-__version__ = 'skmer 3.0.1'
+__version__ = 'skmer-pop'
 
 # Hard-coded param
 coverage_threshold = 5
@@ -44,6 +44,26 @@ def cov_temp_func(x, r, p, k, l):
     return lam * (p ** 2) * np.exp(-lam * p) - 2 * r * (p * np.exp(-lam * p) + 1 - p)
 
 
+def poisson(mu, i):
+    return np.exp(-mu) * mu ** i / np.math.factorial(i)
+
+
+def hist_func_new(x, eps, q_1, q_2, q_3, q_4, q_5):
+    q = np.array([q_1, q_2, q_3, q_4, q_5])
+    J = np.linspace(1, len(q), len(q))
+    M = np.zeros(len(x))
+    lam = x[0][1] / np.dot(q, J)
+    zeta = lam * (1 - eps) ** x[0][0]
+    for i in range(1, len(x)):
+        if i==1:
+            P = [poisson(j * zeta, 1) + (lam - zeta) * j for j in J]
+            M[i] = np.dot(q, P)
+        else:
+            P = [poisson(j * zeta, x[i]) for j in J]
+            M[i] = np.dot(q, P)
+    return M[1:]
+
+
 def estimate_cov(sequence, lib, k, e, nth):
     sample = os.path.basename(sequence).rsplit('.f', 1)[0]
     sample_dir = os.path.join(lib, sample)
@@ -60,6 +80,7 @@ def estimate_cov(sequence, lib, k, e, nth):
         g_len = tl
         eps = 0
         l = "NA"
+ ## Add repeats
         with open(info_file, mode='w') as f:
             f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) +
                     'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
@@ -83,6 +104,7 @@ def estimate_cov(sequence, lib, k, e, nth):
         cov = "NA"
         g_len = "NA"
         eps = "NA"
+## Add repeats
         with open(info_file, mode='w') as f:
             f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) +
                     'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
@@ -105,11 +127,28 @@ def estimate_cov(sequence, lib, k, e, nth):
         cov = newton(cov_temp_func, 0.05, args=(r21, p0, k, l))
     else:
         gam = 1.0 * (ind + 1) * count[ind + 1] / count[ind]
-        lam = (np.exp(-gam) * (gam ** ind) / np.math.factorial(ind)) * count[1] / count[ind] + gam * (1 - np.exp(-gam))
-        eps = 1 - (gam / lam) ** (1.0 / k)
-        cov = (1.0 * l / (l - k)) * lam
+        lam_0 = (np.exp(-gam) * (gam ** ind) / np.math.factorial(ind)) * count[1] / count[ind] + gam * (1 - np.exp(-gam))
+        eps_0 = 1 - (gam / lam_0) ** (1.0 / k)
+        cov_0 = (1.0 * l / (l - k)) * lam_0
+        zeta_0 = lam_0 * (1 - eps_0) ** k
+## Fix this for count and multiplicit
     tot_seq = 1.0 * ksum * l / (l - k)
-    g_len = int(tot_seq / cov)
+    g_len_0 = int(tot_seq / cov_0)
+    n_rep_term = 5
+    n_bins = 20
+    x_0 = list(g_len_0 * np.array([0.9, 0.09, 0.009, 0.0005, 0.005]))
+    xdata_0 = range(1, n_bins + 1)
+    ydata_0 = [count[x] for x in xdata_0]
+    xdata_0 = [(k, 1.0 * ksum)] + xdata_0
+    popt, pcov = curve_fit(hist_func_new, xdata_0, ydata_0, p0=[eps_0]+x_0,
+                           bounds=(0, [10*eps_0, 10*g_len_0, 10*g_len_0, 10*g_len_0, 10*g_len_0, 10*g_len_0]))
+    eps = popt[0]
+    q = popt[1:]
+    J = np.linspace(1, len(q), len(q))
+    g_len = np.dot(q, J)
+    lam = xdata_0[0][1] / g_len
+    cov = (1.0 * l / (l - k)) * lam
+    rep_prob = list(1.0 * q / sum(q))
 
     if eps > error_rate_threshold or eps < 0:
         cov = "NA"
@@ -120,10 +159,26 @@ def estimate_cov(sequence, lib, k, e, nth):
                     'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
         return sample, cov, g_len, eps, l
 
+    q_string = ''
+    for prob in rep_prob:
+        q_string += repr(prob) + '\t'
     with open(info_file, mode='w') as f:
         f.write('coverage\t{0}\n'.format(repr(cov)) + 'genome_length\t{0}\n'.format(g_len) +
-                'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l))
+                'error_rate\t{0}\n'.format(repr(eps)) + 'read_length\t{0}\n'.format(l) +
+                'repeat_profile\t{0}\n'.format(q_string.strip()))
+
+## Output repeats
+    # return sample, cov, g_len, eps, l, rep_prob
     return sample, cov, g_len, eps, l
+
+
+def poisson_percent(mu, p):
+    P = 0
+    for i in range(int(mu)+1):
+        P += poisson(mu, i)
+        if P > 1-p:
+            return max(1, i)
+    return 1
 
 
 def sketch(sequence, lib, ce, ee, k, s, cov_thres):
@@ -402,9 +457,9 @@ def query(args):
                 read_len[ref] = "NA"
         else:
             cov_est[ref] = float(info.split('\n')[0].split('\t')[1])
-            len_est[ref] = int(info.split('\n')[1].split('\t')[1])
+            len_est[ref] = int(float(info.split('\n')[1].split('\t')[1]))
             err_est[ref] = float(info.split('\n')[2].split('\t')[1])
-            read_len[ref] = int(info.split('\n')[3].split('\t')[1])
+            read_len[ref] = int(float(info.split('\n')[3].split('\t')[1]))
 
     # Number of pools for multi-processing
     n_pool_dist = min(args.p, len(refs))
@@ -441,8 +496,9 @@ def query(args):
     # Adding query to the reference library
     if args.a:
         os.rename(sample_dir, os.path.join(args.library, sample))
+    # To save processed query by default
     else:
-        shutil.rmtree(sample_dir)
+        os.rename(sample_dir, os.path.join(args.O, sample))
 
 
 def main():
@@ -507,6 +563,8 @@ def main():
                             help='Add the processed input (query) to the (reference) library')
     parser_qry.add_argument('-o', default='dist',
                             help='Output (distances) prefix. Default: dist')
+    parser_qry.add_argument('-O', default=os.getcwd(),
+                            help='Output (processed) query path. Default: working_directory/')
     parser_qry.add_argument('-e', type=float, help='Base error rate. By default, the error rate is automatically '
                                                    'estimated.')
     parser_qry.add_argument('-t', action='store_true',
