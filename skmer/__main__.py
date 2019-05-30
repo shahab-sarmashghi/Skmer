@@ -137,7 +137,7 @@ def estimate_cov(sequence, lib, k, e, nth):
     n_rep_term = 5
     n_bins = 20
     x_0 = list(g_len_0 * np.array([0.9, 0.09, 0.009, 0.0005, 0.005]))
-    xdata_0 = range(1, n_bins + 1)
+    xdata_0 = list(range(1, n_bins + 1))
     ydata_0 = [count[x] for x in xdata_0]
     xdata_0 = [(k, 1.0 * ksum)] + xdata_0
     popt, pcov = curve_fit(hist_func_new, xdata_0, ydata_0, p0=[eps_0]+x_0,
