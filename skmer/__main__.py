@@ -14,7 +14,7 @@ import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-__version__ = 'skmer-pop'
+__version__ = 'skmer-pop v2'
 
 # Hard-coded param
 coverage_threshold = 5
