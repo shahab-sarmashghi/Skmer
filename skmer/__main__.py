@@ -14,7 +14,7 @@ import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-__version__ = 'skmer-pop v2'
+__version__ = 'skmer-pop v3'
 
 # Hard-coded param
 coverage_threshold = 5
@@ -94,6 +94,8 @@ def estimate_cov(sequence, lib, k, e, nth):
     with open(histo_file, mode='w') as f:
         f.write(histo_stderr)
     os.remove(mercnt)
+    # with open(histo_file) as f:
+    #     histo_stderr = f.read()
     count = [0]
     ksum = 0
     for item in histo_stderr.split('\n')[:-1]:
@@ -379,9 +381,9 @@ def distance(args):
                 read_len[ref] = "NA"
         else:
             cov_est[ref] = float(info.split('\n')[0].split('\t')[1])
-            len_est[ref] = int(info.split('\n')[1].split('\t')[1])
+            len_est[ref] = int(float(info.split('\n')[1].split('\t')[1]))
             err_est[ref] = float(info.split('\n')[2].split('\t')[1])
-            read_len[ref] = int(info.split('\n')[3].split('\t')[1])
+            read_len[ref] = int(float(info.split('\n')[3].split('\t')[1]))
 
     # Number of pools and threads for multi-processing
     n_pool_dist = min(args.p, len(refs) ** 2)
