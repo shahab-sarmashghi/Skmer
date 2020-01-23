@@ -14,7 +14,7 @@ import pandas as pd
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-__version__ = 'skmer 3.0.1'
+__version__ = 'skmer 3.0.2'
 
 # Hard-coded param
 coverage_threshold = 5
@@ -440,9 +440,14 @@ def query(args):
 
     # Adding query to the reference library
     if args.a:
-        os.rename(sample_dir, os.path.join(args.library, sample))
-    else:
-        shutil.rmtree(sample_dir)
+        try:
+            shutil.copytree(sample_dir, os.path.join(args.library, sample))
+        except shutil.Error as e:
+            print('Directory not copied. Error: %s' % e)
+        except OSError as e:
+            print('Directory not copied. Error: %s' % e)
+
+    shutil.rmtree(sample_dir)
 
 
 def main():
