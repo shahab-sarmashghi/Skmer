@@ -1,3 +1,6 @@
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/skmer/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/skmer/badges/downloads.svg)](https://anaconda.org/bioconda/skmer)
+
 # Skmer
 Skmer is a fast tool for estimating distances between genomes from low-coverage sequencing reads (genome-skims), without needing any assembly or alignment step. The paper where we have described the methods and tested Skmer on simulated short reads and SRA's from previous sequencing experiments is available online (open access):
   - [Sarmashghi, S., Bohmann, K., P. Gilbert, M. T., Bafna, V., & Mirarab, S. (2019). Skmer: assembly-free and alignment-free sample identification using genome skims. Genome Biology, 20(1), 34. https://doi.org/10.1186/s13059-019-1632-4][1]
