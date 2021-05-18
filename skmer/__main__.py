@@ -126,24 +126,27 @@ def estimate_cov(sequence, lib, k, e, nth):
     return sample, cov, g_len, eps, l
 
 
-def sketch(sequence, lib, ce, ee, k, s, cov_thres):
+def sketch(sequence, lib, ce, ee, k, s, cov_thres, seed):
     sample = os.path.basename(sequence).rsplit('.f', 1)[0]
     sample_dir = os.path.join(lib, sample)
     msh = os.path.join(sample_dir, sample)
     cov = ce[sample]
     eps = ee[sample]
     if cov == "NA" and eps == 0:
-        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-o", msh, sequence], stderr=open(os.devnull, 'w'))
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-S", str(seed), "-o", msh, sequence], stderr=open(
+            os.devnull, 'w'))
         return
     elif eps == "NA":
-        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, sequence], stderr=open(os.devnull, 'w'))
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-S", str(seed), "-r", "-o", msh, sequence], stderr=open(
+            os.devnull, 'w'))
         return
     copy_thres = int(cov / cov_thres) + 1
     if cov < cov_thres or eps == 0.0:
-        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-r", "-o", msh, sequence], stderr=open(os.devnull, 'w'))
+        call(["mash", "sketch", "-k", str(k), "-s", str(s), "-S", str(seed), "-r", "-o", msh, sequence], stderr=open(
+            os.devnull, 'w'))
     else:
-        call(["mash", "sketch", "-m", str(copy_thres), "-k", str(k), "-s", str(s), "-o", msh, sequence],
-             stderr=open(os.devnull, 'w'))
+        call(["mash", "sketch", "-m", str(copy_thres), "-k", str(k), "-s", str(s), "-S", str(seed), "-o", msh,
+              sequence], stderr=open(os.devnull, 'w'))
     return
 
 
@@ -211,7 +214,8 @@ def reference(args):
     # Creating a config file for references
     config_file = os.path.join(args.l, 'CONFIG')
     with open(config_file, mode='w') as f:
-        f.write('kmer_length\t{0}\n'.format(args.k) + 'sketch_size\t{0}\n'.format(args.s))
+        f.write('kmer_length\t{0}\n'.format(args.k) + 'sketch_size\t{0}\n'.format(args.s) +
+                'sketching_seed\t{0}\n'.format(args.S))
 
     # Making a list of sample names
     formats = ['.fq', '.fastq', '.fa', '.fna', '.fasta']
@@ -261,7 +265,7 @@ def reference(args):
     sys.stderr.write('[skmer] Sketching sequences using {0} processors...\n'.format(n_pool))
     pool_sketch = mp.Pool(n_pool)
     results_sketch = [pool_sketch.apply_async(sketch, args=(seq, args.l, cov_est, err_est, args.k, args.s,
-                                                            coverage_threshold)) for seq in sequences]
+                                                            coverage_threshold, args.S)) for seq in sequences]
     for result in results_sketch:
         result.get(9999999)
     pool_sketch.close()
@@ -356,6 +360,7 @@ def query(args):
         config = f.read()
     kl = int(config.split('\n')[0].split('\t')[1])
     ss = int(config.split('\n')[1].split('\t')[1])
+    seed = int(config.split('\n')[2].split('\t')[1])
 
     # Creating a directory for the query
     sample = os.path.basename(args.input).rsplit('.f', 1)[0]
@@ -420,7 +425,7 @@ def query(args):
 
     # Sketching the query genome-skim
     sys.stderr.write('[skmer] Sketching the genome-skim...\n')
-    sketch(args.input, os.getcwd(), cov_est, err_est, kl, ss, coverage_threshold)
+    sketch(args.input, os.getcwd(), cov_est, err_est, kl, ss, coverage_threshold, seed)
 
     # Estimating pair-wise distances
     sys.stderr.write('[skmer] Estimating distances using {0} processors...\n'.format(n_pool_dist))
@@ -481,7 +486,8 @@ def main():
                             help='Output (distances) prefix. Default: ref-dist-mat')
     parser_ref.add_argument('-k', type=int, choices=list(range(1, 32)), default=31, help='K-mer length [1-31]. ' +
                                                                                          'Default: 31', metavar='K')
-    parser_ref.add_argument('-s', type=int, default=10 ** 7, help='Sketch size. Default: 10000000')
+    parser_ref.add_argument('-s', type=int, default=10 ** 5, help='Sketch size. Default: 100000')
+    parser_ref.add_argument('-S', type=int, default=42, help='Sketching random seed. Default: 42')
     parser_ref.add_argument('-e', type=float, help='Base error rate. By default, the error rate is automatically '
                                                    'estimated.')
     parser_ref.add_argument('-t', action='store_true',
