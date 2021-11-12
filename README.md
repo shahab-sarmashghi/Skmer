@@ -73,6 +73,17 @@ skmer query qry.fastq library -o output_prefix
 ```
 If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
 
+### subsample
+Processes a query genome-skim or assembly, and outputs the sorted list of reference samples based on their distance to the query. Optionally, the query can be added to the reference library. To test its function, assuming that you have already run `reference` and compiled the reference `library`, in `data` directory run
+```
+skmer query qry.fastq library
+```
+The sorted list of reference species and their distances from the query is written to `dist-qry.txt`. You can change the output prefix from `dist` to something else using `-o` option
+```
+skmer query qry.fastq library -o output_prefix
+```
+If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
+
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
 [3]: http://mash.readthedocs.io/en/latest/
