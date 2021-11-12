@@ -85,7 +85,7 @@ The sorted list of reference species and their distances from the query is writt
 skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
  
 ```
-If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
+To see the complete list of inputs and options, run `skmer subsample -h`.
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
