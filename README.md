@@ -89,7 +89,7 @@ To see the complete list of inputs and options, run `skmer subsample -h`.
 ### correct
 Performs correction of subsampled distance matrices obtained for reference genome-skims or assemblies. Since distance matrices are precomputed this step is fast. 
 
-Output is this command is a set of corrected distance matrices for main estimate and subreplicates. Main distance matrix will remain unchanged and correction in this case only involves rounding of the values to ensure that output is compatible with downstream tools, like FastMe. Filename will be appended with the suffix `_cor_`. For all subreplicates distance matrices for both types of correction will be generated. Corrected distance matrices will be appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
+Output is this command is a set of corrected distance matrices for main estimate and subreplicates. Main distance matrix remains unchanged and correction in this case only involves rounding of the values smaller number of significant digits to ensure that output is compatible with downstream tools like FastMe. Filename will be appended with the suffix `_cor_`. For all subreplicates distance matrices for both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
 ```
 skmer correct -main /jc-dist-mat -sub subsample_dir
 ```
