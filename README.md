@@ -83,7 +83,6 @@ skmer subsample ref_dir library
 A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
 ```
 skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
- 
 ```
 To see the complete list of inputs and options, run `skmer subsample -h`.
 
