@@ -76,12 +76,11 @@ skmer query qry.fastq library -o output_prefix
 If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
 
 ### subsample
-Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` folder containing replicate subfolders `rep0`, `rep1` etc. ``
-Processes a query genome-skim or assembly, and outputs the sorted list of reference samples based on their distance to the query. Optionally, the query can be added to the reference library. To test its function, assuming that you have already run `reference` and compiled the reference `library`, in `data` directory run
+Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` folder containing replicate subfolders `rep0`, `rep1` etc.
 ```
 skmer subsample ref_dir library
 ```
-A number of additional paramters can be specified. `-b` option can be used to specify count of subreplicates (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. `-S` allows to provide custom seed to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can specify directory of output for subsample replicates (default is `working_directory/subsample`)
+A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
 ```
 skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
  
