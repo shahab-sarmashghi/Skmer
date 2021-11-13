@@ -86,6 +86,14 @@ skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
 To see the complete list of inputs and options, run `skmer subsample -h`.
 
+### correct
+Performs correction of subsampled distance matrices obtained for reference
+genome-skims or assemblies
+```
+skmer correct ref_dir/subsample di_matrx
+```
+To see the complete list of inputs and options, run `skmer correct -h`.
+
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
 [3]: http://mash.readthedocs.io/en/latest/
