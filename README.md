@@ -78,7 +78,7 @@ If you want to add the processed query to the reference library and include it a
 ### subsample
 Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` folder containing replicate subfolders `rep0`, `rep1` etc.
 ```
-skmer subsample ref_dir library
+skmer subsample ref_dir
 ```
 A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
 ```
