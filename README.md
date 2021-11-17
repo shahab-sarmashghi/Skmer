@@ -99,7 +99,7 @@ skmer correct -main jc-dist-mat -sub subsample_dir
 ```
 `-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command.  `-sub` is used to specify location of `subsample` directory. These options have no default settings.
 
-<br/><br/>
+<!-- <br/><br/>
 Suggested workflow for computing trees with branch support (in progress...).
 -----
 
@@ -113,7 +113,7 @@ We suggest the following workflow to obtain *k*-mer list file to construct CONSU
 **3. To correct. 
 
 ### 2. Reformat trees into phylip format.
-### 3. Use a combination of FastME, RAxML
+### 3. Use a combination of FastME, RAxML -->
 
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
