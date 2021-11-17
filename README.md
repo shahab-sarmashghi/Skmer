@@ -99,6 +99,23 @@ skmer correct -main jc-dist-mat -sub subsample_dir
 ```
 `-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command.  `-sub` is used to specify location of `subsample` directory. These options have no default settings.
 
+<br/><br/>
+Suggested workflow for computing tress with esitmated branch support (in progress...).
+-----
+
+### 1. Obtained Skmer distance matrices
+We suggest the following workflow to obtain *k*-mer list file to construct CONSULT database from multiple assembly references.
+
+**1. To obtain main estimate before subsampling:
+
+**2. To obtain subreplicates. 
+
+**3. To correct. 
+
+### 2. Reformat tress to phylip format.
+### 3. Use a combination of FastME, RAxML
+
+
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
 [3]: http://mash.readthedocs.io/en/latest/
