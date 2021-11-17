@@ -5,6 +5,12 @@
 Skmer is a fast tool for estimating distances between genomes from low-coverage sequencing reads (genome-skims), without needing any assembly or alignment step. The paper where we have described the methods and tested Skmer on simulated short reads and SRA's from previous sequencing experiments is available online (open access):
   - [Sarmashghi, S., Bohmann, K., P. Gilbert, M. T., Bafna, V., & Mirarab, S. (2019). Skmer: assembly-free and alignment-free sample identification using genome skims. Genome Biology, 20(1), 34. https://doi.org/10.1186/s13059-019-1632-4][1]
 
+The paper where we have described **_procedure for estimating branch support for phylogenies generated using Skmer_** will be available online shortly: 
+
+ - **Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-free estimates of genomic distance and phylogenetic relationship.**
+
+We are working on integrating changes into the main Skmer branch.
+<br/><br/><br/><br/>
 Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. 
 
 Installation
@@ -72,6 +78,43 @@ The sorted list of reference species and their distances from the query is writt
 skmer query qry.fastq library -o output_prefix
 ```
 If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
+
+### subsample
+Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` folder containing replicate subfolders `rep0`, `rep1` etc.
+```
+skmer subsample ref_dir
+```
+A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
+```
+skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
+```
+To see the complete list of inputs and options, run `skmer subsample -h`.
+
+### correct
+Performs correction of subsampled distance matrices obtained for reference genome-skims or assemblies. Since distance matrices are precomputed this step is fast. 
+
+Output is this command is a set of corrected distance matrices for main estimate and subreplicates. Main distance matrix remains unchanged and in this case correction only involves rounding of the values to smaller number of significant digits to ensure that output is compatible with downstream tools like FastMe. Filename will be appended with the suffix `_cor_`. For all subreplicates distance matrices for both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
+```
+skmer correct -main jc-dist-mat -sub subsample_dir
+```
+`-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command.  `-sub` is used to specify location of `subsample` directory. These options have no default settings.
+
+<br/><br/>
+Suggested workflow for computing trees with branch support (in progress...).
+-----
+
+### 1. Obtained Skmer distance matrices
+We suggest the following workflow to obtain *k*-mer list file to construct CONSULT database from multiple assembly references.
+
+**1. To obtain main estimate before subsampling:
+
+**2. To obtain subreplicates. 
+
+**3. To correct. 
+
+### 2. Reformat trees into phylip format.
+### 3. Use a combination of FastME, RAxML
+
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
