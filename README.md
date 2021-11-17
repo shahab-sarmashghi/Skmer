@@ -7,7 +7,7 @@ Skmer is a fast tool for estimating distances between genomes from low-coverage 
 
 The paper where we have described **_procedure for estimating branch support for phylogenies generated using Skmer_** will be available online shortly: 
 
- - **Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-freeestimates of genomic distance and phylogenetic relationship.**
+ - **Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-free estimates of genomic distance and phylogenetic relationship.**
 
 We are working on integrating changes into the main Skmer branch.
 
