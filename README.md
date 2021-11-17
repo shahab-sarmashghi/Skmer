@@ -99,7 +99,7 @@ skmer correct -main jc-dist-mat -sub subsample_dir
 ```
 `-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command.  `-sub` is used to specify location of `subsample` directory. These options have no default settings.
 
-<br/>
+
 Suggested workflow for computing tress with branch support (in progress...).
 -----
 
