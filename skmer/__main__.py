@@ -404,7 +404,7 @@ def subsample(args):
     #print(sample_read_cnt)
 
 
-    # Check whether inputs are reads or asseblies
+    # Check whether inputs are reads or assemblies
     if "NA" in list(read_len.values()):
         input_data = 'assemblies'
     else:
