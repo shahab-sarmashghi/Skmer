@@ -6,8 +6,9 @@ Skmer is a fast tool for estimating distances between genomes from low-coverage 
   - [Sarmashghi, S., Bohmann, K., P. Gilbert, M. T., Bafna, V., & Mirarab, S. (2019). Skmer: assembly-free and alignment-free sample identification using genome skims. Genome Biology, 20(1), 34. https://doi.org/10.1186/s13059-019-1632-4][1]
 
 The paper where we have described **_procedure for estimating branch support for phylogenies generated using Skmer_** will be available online shortly. We are working on integrating changes into the main Skmer branch.
- - [Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-freeestimates of genomic distance and phylogenetic relationship][]
-
+```diff
+ +- Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-freeestimates of genomic distance and phylogenetic relationship
+```
 Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. 
 
 Installation
