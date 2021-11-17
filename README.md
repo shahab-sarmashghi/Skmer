@@ -112,7 +112,7 @@ We suggest the following workflow to obtain *k*-mer list file to construct CONSU
 
 **3. To correct. 
 
-### 2. Reformat tress to phylip format.
+### 2. Reformat trees into phylip format.
 ### 3. Use a combination of FastME, RAxML
 
 
