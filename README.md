@@ -6,6 +6,7 @@ Skmer is a fast tool for estimating distances between genomes from low-coverage 
   - [Sarmashghi, S., Bohmann, K., P. Gilbert, M. T., Bafna, V., & Mirarab, S. (2019). Skmer: assembly-free and alignment-free sample identification using genome skims. Genome Biology, 20(1), 34. https://doi.org/10.1186/s13059-019-1632-4][1]
 
 The paper where we have described **_procedure for estimating branch support for phylogenies generated using Skmer_** will be available online shortly. We are working on integrating changes into the main Skmer branch.
+ - [Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-freeestimates of genomic distance and phylogenetic relationship][]
 
 Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. 
 
@@ -89,7 +90,7 @@ To see the complete list of inputs and options, run `skmer subsample -h`.
 ### correct
 Performs correction of subsampled distance matrices obtained for reference genome-skims or assemblies. Since distance matrices are precomputed this step is fast. 
 
-Output is this command is a set of corrected distance matrices for main estimate and subreplicates. Main distance matrix remains unchanged and correction in this case only involves rounding of the values smaller number of significant digits to ensure that output is compatible with downstream tools like FastMe. Filename will be appended with the suffix `_cor_`. For all subreplicates distance matrices for both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
+Output is this command is a set of corrected distance matrices for main estimate and subreplicates. Main distance matrix remains unchanged and in this case correction only involves rounding of the values to smaller number of significant digits to ensure that output is compatible with downstream tools like FastMe. Filename will be appended with the suffix `_cor_`. For all subreplicates distance matrices for both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
 ```
 skmer correct -main jc-dist-mat -sub subsample_dir
 ```
