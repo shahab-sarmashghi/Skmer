@@ -10,7 +10,7 @@ The paper where we have described **_procedure for estimating branch support for
  - **Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-free estimates of genomic distance and phylogenetic relationship.**
 
 We are working on integrating changes into the main Skmer branch.
-<br/><br/>
+<br/><br/><br/><br/>
 Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. 
 
 Installation
