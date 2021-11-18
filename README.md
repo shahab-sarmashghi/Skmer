@@ -84,7 +84,7 @@ Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/
 ```
 skmer subsample ref_dir
 ```
-A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. For instance, user can specify `-b 10` `-i 0`, `-b 10` `-i 10`, `-b 10` `-i 10` etc. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
+A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. For instance to run large dataset user can run subsampling job in chunks by specifying `-b 10 -i 0` (produces 10 replicates starting at index 0 such that first repository name will be rep0), `-b 10 -i 10` etc. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
 ```
 skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
