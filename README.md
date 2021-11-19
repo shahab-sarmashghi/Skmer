@@ -80,7 +80,7 @@ skmer query qry.fastq library -o output_prefix
 If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
 
 ### subsample
-Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` folder containing replicate subfolders `rep0`, `rep1` etc.
+Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` directory containing replicate subfolders `rep0`, `rep1` etc.
 ```
 skmer subsample ref_dir
 ```
@@ -114,12 +114,18 @@ Workflow for computing _k-mer_-based trees with branch support.
 ### 1. To get Skmer distance matrices
 We suggest the following workflow to obtain Skmer distance matrices for sequencing reads or assemblies.
 
-**1. To obtain main estimate before subsampling:
-
+**1. To obtain main estimate distance matrix before subsampling:
+```
+python __main__.py reference ref_dir -s 100000 -S 42 -p 24 -t -o dimtrx_main
+```
 **2. To generate subreplicates: 
-
-**3. To correct. 
-
+```
+python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
+```
+**3. To correct: estimates:
+```
+python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
+```
 ### 2. Reformat trees into phylip format.
 ### 3. Use a combination of FastME, RAxML
 
