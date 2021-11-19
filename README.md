@@ -98,29 +98,29 @@ To see the complete list of inputs and options, run `skmer subsample -h`.
 Performs correction of subsampled distance matrices obtained for reference genome-skims or assemblies. Since distance matrices are precomputed this step is fast. 
 Output is this command is a set of corrected distance matrices for main estimate and subreplicates. 
 
-Input main distance matrix can have any filename. After correction new matrix file will be created with the name appended with the suffix `_cor_`. We note that main distance matrix remains unchanged and correction only involves rounding of the values to 12 significant digits to ensure that output is compatible with downstream tools like FastMe.
+Input main distance matrix can have any filename. After correction new matrix file will be created with the name appended with the suffix `_cor_`. We note that main distance matrix remains unchanged and correction only involves rounding of the values up to 12 significant digits to ensure that output is compatible with downstream tools like FastMe.
 
-Correction algorithm looks for `dimtrx_rep.txt` file in each subreplicate directory. For every subreplicates matrices with both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
+Correction algorithm looks for `dimtrx_rep.txt` file in each subreplicate directory. For every subreplicate matrices with both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` which corresponds to main and consensus correction respectively.
 ```
 skmer correct -main jc-dist-mat -sub subsample_dir
 ```
 `-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command. `-sub` is used to specify location of `subsample` directory. These options have no default settings.
 
-<!-- <br/><br/>
-Suggested workflow for computing trees with branch support (in progress...).
+<br/><br/>
+Workflow for computing _k-mer_-based trees with branch support.
 -----
 
-### 1. Obtained Skmer distance matrices
-We suggest the following workflow to obtain *k*-mer list file to construct CONSULT database from multiple assembly references.
+### 1. To get Skmer distance matrices
+We suggest the following workflow to obtain Skmer distance matrices for sequencing reads or assemblies.
 
 **1. To obtain main estimate before subsampling:
 
-**2. To obtain subreplicates. 
+**2. To generate subreplicates: 
 
 **3. To correct. 
 
 ### 2. Reformat trees into phylip format.
-### 3. Use a combination of FastME, RAxML -->
+### 3. Use a combination of FastME, RAxML
 
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
