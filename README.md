@@ -149,7 +149,7 @@ Gamma      2.000 2.000 0.000 3.000 3.000
 Delta      3.000 3.000 3.000 0.000 1.000
 Epsilon    3.000 3.000 3.000 1.000 0.000
 ```
-Formatting can be done with our linux script by running:
+One of the way to perform formatting might be to run our custom script:
 ```
 bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
