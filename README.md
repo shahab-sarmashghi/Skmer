@@ -174,7 +174,13 @@ cat subsample/rep*/dimtrx_rep_cor_cons.txt.tre > bootstrap.All_consensus
 
 ### 5. Generate final tree with estimated support support
 To perform bootstrap analysis we suggest to used [RAxML](https://cme.h-its.org/exelixis/web/software/raxml/). 
+```
+raxmlHPC -f b -m GTRCAT -z  bootstrap.All -t dimtrx_main_cor_.txt.tre -n BS_TREE_MEAN_MAIN
+```
 
+```
+raxmlHPC -J MRE -z bootstrap.All_consensus -p 4424 -m GTRCAT -n BS_TREE_CONS
+```
 
 
 
