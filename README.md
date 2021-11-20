@@ -155,7 +155,7 @@ bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
 
 ### 3. Phylogeny inference
-[FastME](http://www.atgc-montpellier.fr/fastme/) can be used to infer phylogenies from reformatted distance matrices. With default parameters the program can be launched with: 
+[FastME](http://www.atgc-montpellier.fr/fastme/) can be used to infer phylogenies from reformatted distance matrices. With default parameters the program can be launched: 
 ```
 fastme -i input_data_file -o output_tree_file
 ```
