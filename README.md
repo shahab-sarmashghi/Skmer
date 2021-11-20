@@ -126,6 +126,7 @@ python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
 python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
 ```
+
 ### 2. Reformat distance matrices.
 In order to be compatible with downstream software standard square distance matrices should be converted into [PHYLIP][7] format.
 
@@ -148,11 +149,10 @@ Gamma      2.000 2.000 0.000 3.000 3.000
 Delta      3.000 3.000 3.000 0.000 1.000
 Epsilon    3.000 3.000 3.000 1.000 0.000
 ```
-Formatting can be done with linux script by running:
+Formatting can be done with our linux script by running:
 ```
-bash tsv_to_phymat.sh dimtrx.txt dimtrx_reformatted.txt
+bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
-
 
 ### 3. Use a combination of FastME, RAxML
 
