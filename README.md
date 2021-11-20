@@ -180,7 +180,7 @@ To compute phylogeny using **main correction** the user can draw bipartition inf
 ```
 raxmlHPC -f b -m GTRCAT -z bootstrap.All -t dimtrx_main_cor_.txt.tre -n BS_TREE_MAIN
 ```
-Compute extended majority rule **consensus** tree the user can run:
+Compute extended majority rule **consensus** tree with "-J MRE"  the user can run:
 ```
 raxmlHPC -J MRE -z bootstrap.All_consensus -p 4424 -m GTRCAT -n BS_TREE_CONS
 ```
