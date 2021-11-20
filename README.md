@@ -127,7 +127,7 @@ python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
 ```
 
-### 2. Reformat distance matrices.
+### 2. Reformat distance matrices
 In order to be compatible with downstream software standard square distance matrices should be converted into [PHYLIP][7] format.
 
 Example of distance matrix in standard square form
@@ -154,7 +154,16 @@ One of the way to perform formatting might be to run our custom [script](https:/
 bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
 
-### 3. Use a combination of FastME, RAxML
+### 3. Compute backbone
+
+
+### 4. Concatenate trees
+
+
+### 5. Generate final tree with estimated support support
+
+
+
 
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
