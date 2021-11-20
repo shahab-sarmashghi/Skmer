@@ -163,11 +163,12 @@ In our case input_data_file contains reformatted distance matrix(ces) and output
 
 ### 4. Concatenate trees
 To concatenate output phylogenies for subreplicates the user can run somehting like below:
-For main correction
+
+**For main correction**
 ```
 cat subsample/rep*/dimtrx_rep_cor.txt.tre > bootstrap.All
 ```
-For consensus
+**For consensus**
 ```
 cat subsample/rep*/dimtrx_rep_cor_cons.txt.tre > bootstrap.All_consensus
 ```
