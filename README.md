@@ -180,9 +180,14 @@ To compute phylogeny using **main correction** the user can draw bipartition inf
 ```
 raxmlHPC -f b -m GTRCAT -z bootstrap.All -t dimtrx_main_cor_.txt.tre -n BS_TREE_MAIN
 ```
-Compute extended majority rule **consensus** tree with "-J MRE"  the user can run:
+To compute extended majority rule **consensus** tree with "-J MRE" out of the subsampled replicates the user can run:
 ```
 raxmlHPC -J MRE -z bootstrap.All_consensus -p 4424 -m GTRCAT -n BS_TREE_CONS
+```
+
+Here we note that consensus tree will have all branch lengths set to 1.0. Visualization software like [FigTree](http://tree.bio.ed.ac.uk/software/figtree/) is not compatible with the consensus output. If there is a need to make it work phylogeny file can be reformatted using:
+```
+sed -E 's/([:][0-9]+[.][0-9]+)[[]([0-9]+)[]]/\2\1/g' RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS > RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS_fixed
 ```
 
 
