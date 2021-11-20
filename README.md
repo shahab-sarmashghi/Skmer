@@ -43,7 +43,7 @@ Installation
 
 Using Skmer
 ------------
-Skmer has three sub-commands:
+Skmer has five sub-commands:
 
 ### reference
 Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and creates a reference library containing the estimates of sequencing parameters as well as the Mash sketch for each sample. If the input is an assembled sequence (determined by the length of sequences) the correction for low coverage and sequencing error is not applied to that sample. All corrected pairwise genomic distances are then estimated and written to a file. For a test run, change the directory to `data` under your Skmer installation directory, and run
@@ -80,40 +80,116 @@ skmer query qry.fastq library -o output_prefix
 If you want to add the processed query to the reference library and include it as a reference for future comparisons, use `-a` flag. To see the complete list of inputs and options, run `skmer query -h`.
 
 ### subsample
-Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` folder containing replicate subfolders `rep0`, `rep1` etc.
+Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and performs subsampling procedure. Function will create `subsample` directory containing replicate subfolders `rep0`, `rep1` etc.
 ```
 skmer subsample ref_dir
 ```
-A number of additional paramters can be specified. `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). Combinations of `-b` and `-i` should allow for a more flexible job parallelization. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`)
+A number of additional paramters can be specified. `-S` allows to provide custom seed that will be used to generate a list of seeds for each subreplicate (default is 42). With option `-sub` the user can define directory of output for subsample replicates (default is `working_directory/subsample`). `-b` option can be used to indicate subreplicate count (by default value is set to 100). `-i` allows to specify index of the first replicate (default is 0). 
 ```
 skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
 To see the complete list of inputs and options, run `skmer subsample -h`.
 
+#### Helpful tips:
+- **Job parallelization:** Combinations of `-b` and `-i` allows a flexible job parallelization. For example, to test large dataset user can run subsampling in chunks by specifying `-b 10 -i 0 -S 14500` (generates 10 subreplicates starting at index 0 such as first repository is rep0 and others are rep1, rep2 ... rep9), `-b 10 -i 10 -S 13800` (generates 10 replicates starting at index 10 such as subrepicates are rep10, rep11 ... rep19). Here we note that since internally Skmer uses default seed 42 when subsampling job is split **_variable seed is needed to be specified_** otherwise replicates will come out the same.
+- **Sample uniformity:** At the moment subsample only works for cases where all samples are either assemblies or sequencing reads. If there is a need to run a combination the user can simulate sequencing reads from assemblies. We recommnd tool such as [ART][6] for this purpose.
+
 ### correct
 Performs correction of subsampled distance matrices obtained for reference genome-skims or assemblies. Since distance matrices are precomputed this step is fast. 
+Output is this command is a set of corrected distance matrices for main estimate and subreplicates. 
 
-Output is this command is a set of corrected distance matrices for main estimate and subreplicates. Main distance matrix remains unchanged and in this case correction only involves rounding of the values to smaller number of significant digits to ensure that output is compatible with downstream tools like FastMe. Filename will be appended with the suffix `_cor_`. For all subreplicates distance matrices for both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` for main and consensus correction correspondingly.
+Input main distance matrix can have any filename. After correction new matrix file will be created with the name appended with the suffix `_cor_`. We note that main distance matrix remains unchanged and correction only involves rounding of the values up to 12 significant digits to ensure that output is compatible with downstream tools like FastMe.
+
+Correction algorithm looks for `dimtrx_rep.txt` file in each subreplicate directory. For every subreplicate matrices with both types of correction are generated. Corrected distance matrices are appended with suffixes `_cor` and `_cor_cons` which corresponds to main and consensus correction respectively.
 ```
 skmer correct -main jc-dist-mat -sub subsample_dir
 ```
-`-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command.  `-sub` is used to specify location of `subsample` directory. These options have no default settings.
+`-main` option takes as an input distance matrix file for main estimate before subsampling. This should be computed using standard `reference` command. `-sub` is used to specify location of `subsample` directory. These options have no default settings.
 
-<!-- <br/><br/>
-Suggested workflow for computing trees with branch support (in progress...).
+<br/>
+
+Workflow for computing _k-mer_-based trees with branch support
 -----
 
-### 1. Obtained Skmer distance matrices
-We suggest the following workflow to obtain *k*-mer list file to construct CONSULT database from multiple assembly references.
+### 1. Getting Skmer distance matrices
+We suggest the following workflow to obtain Skmer distance matrices for sequencing reads or assemblies.
 
-**1. To obtain main estimate before subsampling:
+* **To obtain main estimate distance matrix before subsampling:**
+```
+python __main__.py reference ref_dir -s 100000 -S 42 -p 24 -t -o dimtrx_main
+```
+* **To generate subreplicates:**  
+```
+python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
+```
+* **To correct estimates:**
+```
+python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
+```
 
-**2. To obtain subreplicates. 
+### 2. Reformatting distance matrices
+In order to be compatible with downstream software standard square distance matrices should be converted into [PHYLIP][7] format.
 
-**3. To correct. 
+Example of distance matrix in standard square form
+```
+sample     Alpha Beta  Gamma Delta Epsilon
+Alpha      0.000 1.000 2.000 3.000 3.000
+Beta       1.000 0.000 2.000 3.000 3.000
+Gamma      2.000 2.000 0.000 3.000 3.000
+Delta      3.000 3.000 3.000 0.000 1.000
+Epsilon    3.000 3.000 3.000 1.000 0.000
+```
 
-### 2. Reformat trees into phylip format.
-### 3. Use a combination of FastME, RAxML -->
+Example of distance matrix in PHYLIP format
+```
+    5
+Alpha      0.000 1.000 2.000 3.000 3.000
+Beta       1.000 0.000 2.000 3.000 3.000
+Gamma      2.000 2.000 0.000 3.000 3.000
+Delta      3.000 3.000 3.000 0.000 1.000
+Epsilon    3.000 3.000 3.000 1.000 0.000
+```
+One of the way to perform formatting might be to run our custom [script](https://github.com/noraracht/Skmer/blob/master/data/tsv_to_phymat.sh) that is available in data folder:
+```
+bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
+```
+
+### 3. Phylogeny inference
+[FastME](http://www.atgc-montpellier.fr/fastme/) can be used to infer phylogenies from reformatted distance matrices. With default parameters the program can be launched: 
+```
+fastme -i input_data_file -o output_tree_file
+```
+In our case input_data_file contains reformatted distance matrix and output_tree_file contains computed backbone tree.
+
+### 4. Concatenation of trees
+To concatenate output phylogenies for subreplicates the user can run somehting like below:
+
+**For main correction**
+```
+cat subsample/rep*/dimtrx_rep_cor.txt.tre > bootstrap.All
+```
+**For consensus**
+```
+cat subsample/rep*/dimtrx_rep_cor_cons.txt.tre > bootstrap.All_consensus
+```
+
+### 5. Generation of final tree with estimated support
+To perform bootstrap analysis we suggest to use [RAxML](https://cme.h-its.org/exelixis/web/software/raxml/).
+
+To compute phylogeny using **main correction** the user can draw bipartition information on a tree provided with -t (e.g., main Skmer estimate) based on multiple trees (e.g., from subsampled replicates) in a file specified by -z using command:
+```
+raxmlHPC -f b -m GTRCAT -z bootstrap.All -t dimtrx_main_cor_.txt.tre -n BS_TREE_MAIN
+```
+To compute extended majority rule **consensus** tree with "-J MRE" out of the subsampled replicates the user can run:
+```
+raxmlHPC -J MRE -z bootstrap.All_consensus -p 4424 -m GTRCAT -n BS_TREE_CONS
+```
+
+Here we note the some visualization tools for instance [FigTree](http://tree.bio.ed.ac.uk/software/figtree/) are not compatible with the consensus output. If there is a need to make it work phylogeny file can be reformatted using:
+```
+sed -E 's/([:][0-9]+[.][0-9]+)[[]([0-9]+)[]]/\2\1/g' RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS > RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS_fixed
+```
+
 
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
@@ -121,3 +197,5 @@ We suggest the following workflow to obtain *k*-mer list file to construct CONSU
 [3]: http://mash.readthedocs.io/en/latest/
 [4]: https://conda.io/miniconda.html
 [5]: https://github.com/lh3/seqtk
+[6]: https://manpages.debian.org/testing/art-nextgen-simulation-tools/art_illumina.1.en.html
+[7]: https://evolution.genetics.washington.edu/phylip/doc/distance.html
