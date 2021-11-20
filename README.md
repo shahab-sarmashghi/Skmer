@@ -108,7 +108,7 @@ skmer correct -main jc-dist-mat -sub subsample_dir
 
 <br/>
 
-Workflow for computing _k-mer_-based trees with branch support.
+Workflow for computing _k-mer_-based trees with branch support
 -----
 
 ### 1. To get Skmer distance matrices
