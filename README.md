@@ -149,7 +149,7 @@ Gamma      2.000 2.000 0.000 3.000 3.000
 Delta      3.000 3.000 3.000 0.000 1.000
 Epsilon    3.000 3.000 3.000 1.000 0.000
 ```
-One of the way to perform formatting might be to run our custom [script](https://github.com/noraracht/Skmer/blob/master/data/tsv_to_phymat.sh):
+One of the way to perform formatting might be to run our custom [script](https://github.com/noraracht/Skmer/blob/master/data/tsv_to_phymat.sh) that is available in data folder:
 ```
 bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
