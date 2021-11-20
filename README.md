@@ -154,7 +154,12 @@ One of the way to perform formatting might be to run our custom [script](https:/
 bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
 
-### 3. Compute backbone
+### 3. Phylogeny inference
+[FastME](http://www.atgc-montpellier.fr/fastme/) can be used to infer phylogenies from reformatted distance matrices. With default parameters the program can be launched with: 
+```
+fastme -i input_data_file -o output_tree_file
+```
+In our case input_data_file contains reformatted distance matrix(ces) and output_tree_file contains computed backbone tree.
 
 
 ### 4. Concatenate trees
