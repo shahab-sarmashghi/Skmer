@@ -159,7 +159,7 @@ bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
 fastme -i input_data_file -o output_tree_file
 ```
-In our case input_data_file contains reformatted distance matrix(ces) and output_tree_file contains computed backbone tree.
+In our case input_data_file contains reformatted distance matrix and output_tree_file contains computed backbone tree.
 
 ### 4. Concatenation of trees
 To concatenate output phylogenies for subreplicates the user can run somehting like below:
