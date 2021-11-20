@@ -147,7 +147,10 @@ Gamma      2.000 2.000 0.000 3.000 3.000
 Delta      3.000 3.000 3.000 0.000 1.000
 Epsilon    3.000 3.000 3.000 1.000 0.000
 ```
-
+Formatting can be done with linux scrippt by running:
+```
+bash tsv_to_phymat_2.sh dimtrx_main.txt dimtrx_main_reformatted.txt
+```
 
 
 ### 3. Use a combination of FastME, RAxML
