@@ -126,7 +126,16 @@ python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
 python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
 ```
-### 2. Reformat trees into phylip format.
+### 2. Reformat trees into [phylip][7] format.
+```
+    5
+Alpha      0.000 1.000 2.000 3.000 3.000
+Beta       1.000 0.000 2.000 3.000 3.000
+Gamma      2.000 2.000 0.000 3.000 3.000
+Delta      3.000 3.000 3.000 0.000 1.000
+Epsilon    3.000 3.000 3.000 1.000 0.000
+```
+
 
 
 ### 3. Use a combination of FastME, RAxML
@@ -138,3 +147,4 @@ python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_direc
 [4]: https://conda.io/miniconda.html
 [5]: https://github.com/lh3/seqtk
 [6]: https://manpages.debian.org/testing/art-nextgen-simulation-tools/art_illumina.1.en.html
+[7]: https://evolution.genetics.washington.edu/phylip/doc/distance.html
