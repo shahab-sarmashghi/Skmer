@@ -111,7 +111,7 @@ skmer correct -main jc-dist-mat -sub subsample_dir
 Workflow for computing _k-mer_-based trees with branch support
 -----
 
-### 1. To get Skmer distance matrices
+### 1. Getting Skmer distance matrices
 We suggest the following workflow to obtain Skmer distance matrices for sequencing reads or assemblies.
 
 * **To obtain main estimate distance matrix before subsampling:**
@@ -127,7 +127,7 @@ python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
 ```
 
-### 2. Reformat distance matrices
+### 2. Reformatting distance matrices
 In order to be compatible with downstream software standard square distance matrices should be converted into [PHYLIP][7] format.
 
 Example of distance matrix in standard square form
@@ -161,7 +161,7 @@ fastme -i input_data_file -o output_tree_file
 ```
 In our case input_data_file contains reformatted distance matrix(ces) and output_tree_file contains computed backbone tree.
 
-### 4. Concatenate trees
+### 4. Concatenation of trees
 To concatenate output phylogenies for subreplicates the user can run somehting like below:
 
 **For main correction**
@@ -173,7 +173,7 @@ cat subsample/rep*/dimtrx_rep_cor.txt.tre > bootstrap.All
 cat subsample/rep*/dimtrx_rep_cor_cons.txt.tre > bootstrap.All_consensus
 ```
 
-### 5. Generate final tree with estimated support
+### 5. Generation of final tree with estimated support
 To perform bootstrap analysis we suggest to use [RAxML](https://cme.h-its.org/exelixis/web/software/raxml/).
 
 To compute phylogeny using **main correction** the user can draw bipartition information on a tree provided with -t (e.g., main Skmer estimate) based on multiple trees (e.g., from subsampled replicates) in a file specified by -z using command:
