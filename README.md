@@ -126,7 +126,19 @@ python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
 python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
 ```
-### 2. Reformat trees into [phylip][7] format.
+### 2. Reformat distance matrices.
+In order to be compatible with downstream software standard square distance matrices should be converted into [PHYLIP][7] format.
+Example of distance matrix in standard square form
+```
+           Alpha Beta  Gamma Delta Epsilon
+Alpha      0.000 1.000 2.000 3.000 3.000
+Beta       1.000 0.000 2.000 3.000 3.000
+Gamma      2.000 2.000 0.000 3.000 3.000
+Delta      3.000 3.000 3.000 0.000 1.000
+Epsilon    3.000 3.000 3.000 1.000 0.000
+```
+
+Example of distance matrix in PHYLIP format
 ```
     5
 Alpha      0.000 1.000 2.000 3.000 3.000
