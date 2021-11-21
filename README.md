@@ -149,7 +149,7 @@ Gamma      2.000 2.000 0.000 3.000 3.000
 Delta      3.000 3.000 3.000 0.000 1.000
 Epsilon    3.000 3.000 3.000 1.000 0.000
 ```
-One of the way to perform formatting might be to run our custom [script](https://github.com/noraracht/Skmer/blob/master/data/tsv_to_phymat.sh) that is available in data folder:
+One way to perform the formatting is to run our custom [script](https://github.com/noraracht/Skmer/blob/master/data/tsv_to_phymat.sh) that is available in data folder:
 ```
 bash tsv_to_phymat.sh dimtrx_original.txt dimtrx_reformatted.txt
 ```
@@ -162,7 +162,7 @@ fastme -i input_data_file -o output_tree_file
 In our case input_data_file contains reformatted distance matrix and output_tree_file contains computed backbone tree.
 
 ### 4. Concatenation of trees
-To concatenate output phylogenies for subreplicates the user can run somehting like below:
+To concatenate output phylogenies for subreplicates the user can run the following commands:
 
 **For main correction**
 ```
@@ -185,7 +185,7 @@ To compute extended majority rule **consensus** tree with "-J MRE" out of the su
 raxmlHPC -J MRE -z bootstrap.All_consensus -p 4424 -m GTRCAT -n BS_TREE_CONS
 ```
 
-Here we note the some visualization tools for instance [FigTree](http://tree.bio.ed.ac.uk/software/figtree/) are not compatible with the consensus output. If there is a need to make it work phylogeny file can be reformatted using:
+Note: some visualization tools, for instance [FigTree](http://tree.bio.ed.ac.uk/software/figtree/), are not compatible with the consensus output. If there is a need to make it work, phylogeny file can be reformatted using:
 ```
 sed -E 's/([:][0-9]+[.][0-9]+)[[]([0-9]+)[]]/\2\1/g' RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS > RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS_fixed
 ```
