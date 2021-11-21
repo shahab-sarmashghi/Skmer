@@ -116,15 +116,15 @@ We suggest the following workflow to obtain Skmer distance matrices for sequenci
 
 * **To obtain main estimate distance matrix before subsampling:**
 ```
-python __main__.py reference ref_dir -s 100000 -S 42 -p 24 -t -o dimtrx_main
+skmer reference ref_dir -s 100000 -S 42 -p 24 -t -o dimtrx_main
 ```
 * **To generate subreplicates:**  
 ```
-python __main__.py subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
+skmer subsample -b 100 ref_dir -s 100000 -S 42 -p 24 -t -i 0
 ```
 * **To correct estimates:**
 ```
-python __main__.py correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
+skmer correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsample
 ```
 
 ### 2. Reformatting distance matrices
