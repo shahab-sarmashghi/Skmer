@@ -128,7 +128,7 @@ skmer correct -main path_to_file/dimtrx_main.txt -sub path_to_directory/subsampl
 ```
 
 ### 2. Reformatting distance matrices
-In order to be compatible with downstream software standard square distance matrices should be converted into [PHYLIP][7] format.
+In order to be compatible with downstream software, standard square distance matrices should be converted into [PHYLIP][7] format.
 
 Example of distance matrix in standard square form
 ```
