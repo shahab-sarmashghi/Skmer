@@ -174,7 +174,7 @@ cat subsample/rep*/dimtrx_rep_cor_cons.txt.tre > bootstrap.All_consensus
 ```
 
 ### 5. Generation of final tree with estimated support
-To perform bootstrap analysis we suggest to use [RAxML](https://cme.h-its.org/exelixis/web/software/raxml/).
+To generate phylogeny with support values we suggest to use [RAxML](https://cme.h-its.org/exelixis/web/software/raxml/).
 
 To compute phylogeny using **main correction** the user can draw bipartition information on a tree provided with -t (e.g., main Skmer estimate) based on multiple trees (e.g., from subsampled replicates) in a file specified by -z using command:
 ```
