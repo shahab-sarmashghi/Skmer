@@ -4,7 +4,7 @@ Genome-skims of:
 
   - Cotesia vestalis and mutated copies at a range of coverages from 1/8X to 16X:
   
-    - [Cotesia_vestalis_distance_vs_coverage.tar.gz](https://drive.google.com/open?id=1DK3ahfQnyEx5MbIFdgyr8TvCuJ1iK9Y0)
+    - [Cotesia_vestalis_distance_vs_coverage.tar.gz](https://drive.google.com/file/d/1BtAEuKp7Ra6mkR6gs_D28-s0Fzk3G1Qu/view?usp=sharing)
   
   - Six pairs of insects at a range of coverages from 1/8X to 8X: 
 
