@@ -190,7 +190,9 @@ Note: some visualization tools, for instance [FigTree](http://tree.bio.ed.ac.uk/
 sed -E 's/([:][0-9]+[.][0-9]+)[[]([0-9]+)[]]/\2\1/g' RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS > RAxML_MajorityRuleExtendedConsensusTree.BS_TREE_CONS_fixed
 ```
 
-
+Tutorials
+---------
+Check out the following [tutorials](https://github.com/smirarab/tutorials) for more on how to use Skmer and other tools we have developed for different genome skimming applications.
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
@@ -199,3 +201,4 @@ sed -E 's/([:][0-9]+[.][0-9]+)[[]([0-9]+)[]]/\2\1/g' RAxML_MajorityRuleExtendedC
 [5]: https://github.com/lh3/seqtk
 [6]: https://manpages.debian.org/testing/art-nextgen-simulation-tools/art_illumina.1.en.html
 [7]: https://evolution.genetics.washington.edu/phylip/doc/distance.html
+
