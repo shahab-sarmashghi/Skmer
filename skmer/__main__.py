@@ -108,10 +108,11 @@ def estimate_cov(sequence, lib, k, e, nth):
     hist = np.array(count[1:])
     seq_diff = np.diff(hist)
     increase_mask = seq_diff > 0
-    if not increase_mask.any():
+    if increase_mask.any():
+        local_min = np.where(increase_mask > 0)[0][0]
+        ind = np.where(seq_diff[local_min:] < 0)[0][0] + local_min + 1
+    else:
         ind = 1
-    local_min = np.where(increase_mask > 0)[0][0]
-    ind = np.where(seq_diff[local_min:] < 0)[0][0] + local_min + 1
 
     if e is not None:
         eps = e
