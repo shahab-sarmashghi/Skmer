@@ -104,7 +104,16 @@ def estimate_cov(sequence, lib, k, e, nth):
             f.write('coverage\t{0}\n'.format(cov) + 'genome_length\t{0}\n'.format(g_len) +
                     'error_rate\t{0}\n'.format(eps) + 'read_length\t{0}\n'.format(l))
         return sample, cov, g_len, eps, l
-    ind = min(count.index(max(count[2:])), len(count) - 2)
+
+    hist = np.array(count[1:])
+    seq_diff = np.diff(hist)
+    increase_mask = seq_diff > 0
+    if increase_mask.any():
+        local_min = np.where(increase_mask > 0)[0][0]
+        ind = np.where(seq_diff[local_min:] < 0)[0][0] + local_min + 1
+    else:
+        ind = 1
+
     if e is not None:
         eps = e
         p0 = np.exp(-k * eps)
