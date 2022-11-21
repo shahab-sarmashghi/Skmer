@@ -15,7 +15,7 @@ import subprocess
 from subprocess import call, check_output, STDOUT
 import multiprocessing as mp
 
-__version__ = 'skmer 3.2.1'
+__version__ = 'skmer 4.0.0'
 
 # Hard-coded param
 coverage_threshold = 5
@@ -787,7 +787,10 @@ def query(args):
         config = f.read()
     kl = int(config.split('\n')[0].split('\t')[1])
     ss = int(config.split('\n')[1].split('\t')[1])
-    seed = int(config.split('\n')[2].split('\t')[1])
+    try:
+        seed = int(config.split('\n')[2].split('\t')[1])
+    except IndexError:
+        seed = 42
 
     # Creating a directory for the query
     sample = os.path.basename(args.input).rsplit('.f', 1)[0]
