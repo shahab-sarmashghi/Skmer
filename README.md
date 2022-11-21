@@ -5,13 +5,11 @@
 Skmer is a fast tool for estimating distances between genomes from low-coverage sequencing reads (genome-skims), without needing any assembly or alignment step. The paper where we have described the methods and tested Skmer on simulated short reads and SRA's from previous sequencing experiments is available online (open access):
   - [Sarmashghi, S., Bohmann, K., P. Gilbert, M. T., Bafna, V., & Mirarab, S. (2019). Skmer: assembly-free and alignment-free sample identification using genome skims. Genome Biology, 20(1), 34. https://doi.org/10.1186/s13059-019-1632-4][1]
 
-The paper where we have described **_procedure for estimating branch support for phylogenies generated using Skmer_** will be available online shortly: 
+And the paper where we have described the procedure for estimating branch support for phylogenies generated using Skmer is here:
 
- - **Rachtman, E., Sarmashghi, S., Bafna, V., & Mirarab, S. Uncertainty quantification using subsampling for assembly-free estimates of genomic distance and phylogenetic relationship.**
+ - [Eleonora Rachtman, Shahab Sarmashghi, Vineet Bafna, Siavash Mirarab, Quantifying the uncertainty of assembly-free genome-wide distance estimates and phylogenetic relationships using subsampling, Cell Systems, Volume 13, Issue 10, 2022, Pages 817-829.e3, ISSN 2405-4712, https://doi.org/10.1016/j.cels.2022.06.007.][8]
 
-We are working on integrating changes into the main Skmer branch.
-<br/><br/><br/><br/>
-Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. 
+Skmer is a command-line tool implemented in python. It runs [Jellyfish][2] and [Mash][3] internally to efficiently compute k-mer profile of genome-skims and their intersection, and estimates the genomic distances by correcting for the effect of low coverage and sequencing error. Skmer also depends on [seqtk][5] for some FASTQ/A processings. After following the installation steps and going over the usage guide, check out these awesome [tutorials][9] by Siavash Mirarab to learn more about using Skmer and other tools we have developed for genome skimming.
 
 Installation
 ------------
@@ -192,7 +190,7 @@ sed -E 's/([:][0-9]+[.][0-9]+)[[]([0-9]+)[]]/\2\1/g' RAxML_MajorityRuleExtendedC
 
 Tutorials
 ---------
-Check out the following [tutorials](https://github.com/smirarab/tutorials) for more on how to use Skmer and other tools we have developed for different genome skimming applications.
+Check out the following [tutorials][9] for more on how to use Skmer and other tools we have developed for different genome skimming applications.
 
 [1]: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1632-4
 [2]: http://www.genome.umd.edu/jellyfish.html
@@ -201,4 +199,6 @@ Check out the following [tutorials](https://github.com/smirarab/tutorials) for m
 [5]: https://github.com/lh3/seqtk
 [6]: https://manpages.debian.org/testing/art-nextgen-simulation-tools/art_illumina.1.en.html
 [7]: https://evolution.genetics.washington.edu/phylip/doc/distance.html
+[8]: https://www.sciencedirect.com/science/article/pii/S2405471222002770
+[9]: https://github.com/smirarab/tutorials
 
