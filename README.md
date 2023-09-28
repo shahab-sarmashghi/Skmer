@@ -44,7 +44,7 @@ Using Skmer
 Skmer has five sub-commands:
 
 ### reference
-Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and creates a reference library containing the estimates of sequencing parameters as well as the Mash sketch for each sample. If you have paried-end sequencing reads, we suggest using tools such as [BBMerge][10] to merge overlapping read pairs. If the input is an assembled sequence (determined by the length of sequences) the correction for low coverage and sequencing error is not applied to that sample. All corrected pairwise genomic distances are then estimated and written to a file. For a test run, change the directory to `data` under your Skmer installation directory, and run
+Gets the path to a directory of FASTQ/FASTA files (one uncompressed *.fastq/.fq/.fa/.fna/.fasta* file per each sample) and creates a reference library containing the estimates of sequencing parameters as well as the Mash sketch for each sample. If you have paired-end sequencing reads, we suggest using tools such as [BBMerge][10] to merge overlapping read pairs. If the input is an assembled sequence (determined by the length of sequences) the correction for low coverage and sequencing error is not applied to that sample. All corrected pairwise genomic distances are then estimated and written to a file. For a test run, change the directory to `data` under your Skmer installation directory, and run
 ```
 skmer reference ref_dir -p 4
 ```
